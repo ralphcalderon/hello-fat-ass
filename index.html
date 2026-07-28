@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Hello, Fat Ass!</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fat Ass!">
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface-1: #fcfcfb;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --cal: #eb6834;          /* calories = orange, slot 2 */
+    --protein: #2a78d6;      /* protein = blue, slot 1 */
+    --fiber: #1baf7a;        /* fiber = aqua, slot 3 */
+    --cal-track: rgba(235,104,52,0.16);
+    --protein-track: rgba(42,120,214,0.16);
+    --fiber-track: rgba(27,175,122,0.16);
+    --good: #0ca30c;
+    --warning: #fab219;
+    --serious: #ec835a;
+    --critical: #d03b3b;
+    --success-text: #006300;
+    --wash: rgba(11,11,11,0.045);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #0d0d0d;
+      --surface-1: #1a1a19;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --cal: #d95926;
+      --protein: #3987e5;
+      --fiber: #199e70;
+      --cal-track: rgba(217,89,38,0.22);
+      --protein-track: rgba(57,135,229,0.22);
+      --fiber-track: rgba(25,158,112,0.22);
+      --success-text: #0ca30c;
+      --wash: rgba(255,255,255,0.06);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --cal: #d95926;
+    --protein: #3987e5;
+    --fiber: #199e70;
+    --cal-track: rgba(217,89,38,0.22);
+    --protein-track: rgba(57,135,229,0.22);
+    --fiber-track: rgba(25,158,112,0.22);
+    --success-text: #0ca30c;
+    --wash: rgba(255,255,255,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page);
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .app { max-width: 1060px; margin: 0 auto; padding: 20px 16px 90px; }
+
+  /* ---------- header ---------- */
+  header.top {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  header.top h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .streaks { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .streak-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 12px; font-size: 13px;
+    color: var(--text-secondary); font-weight: 600;
+  }
+  .streak-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .theme-btn {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 999px; width: 32px; height: 32px; cursor: pointer;
+    color: var(--text-secondary); font-size: 15px; line-height: 1;
+  }
+
+  /* ---------- tabs ---------- */
+  nav.tabs {
+    display: flex; gap: 4px; background: var(--surface-1);
+    border: 1px solid var(--border); border-radius: 12px; padding: 4px;
+    margin-bottom: 18px; width: fit-content;
+  }
+  nav.tabs button {
+    border: 0; background: transparent; padding: 7px 18px; border-radius: 9px;
+    font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+    font-family: inherit;
+  }
+  nav.tabs button.active { background: var(--text-primary); color: var(--page); }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px;
+  }
+  .card h2 { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
+  .card h2 .sub { color: var(--text-muted); font-weight: 500; }
+
+  /* ---------- date nav ---------- */
+  .datebar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .datebar button {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 9px;
+    width: 32px; height: 32px; cursor: pointer; color: var(--text-secondary);
+    font-size: 15px; font-family: inherit;
+  }
+  .datebar .today-btn { width: auto; padding: 0 12px; font-size: 13px; font-weight: 600; }
+  .datebar .datelabel { font-size: 16px; font-weight: 700; }
+  .datebar .datelabel .weekday { color: var(--text-muted); font-weight: 500; }
+
+  /* ---------- compact status strip ---------- */
+  .strip { display: flex; gap: 4px 16px; flex-wrap: wrap; align-items: center; padding: 11px 16px; font-size: 13.5px; }
+  .strip .s-seg { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); white-space: nowrap; }
+  .strip .s-seg b { color: var(--text-primary); }
+  .strip .s-seg .dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+  .strip .s-seg.hit b { color: var(--success-text); }
+  .strip .s-warn {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
+    border-radius: 999px; padding: 2px 10px; white-space: nowrap;
+  }
+  .strip .s-warn.w80 { background: color-mix(in srgb, var(--warning) 18%, transparent); }
+  .strip .s-warn.w100 { background: color-mix(in srgb, var(--critical) 16%, transparent); color: var(--critical); }
+
+  /* ---------- rings row ---------- */
+  .rings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+  .ring-card { display: flex; align-items: center; gap: 14px; }
+  .ring-wrap { position: relative; width: 92px; height: 92px; flex: none; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-center {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+  }
+  .ring-center .pct { font-size: 17px; font-weight: 700; }
+  .ring-meta .label { font-size: 13px; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  .ring-meta .label .key { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .ring-meta .val { font-size: 21px; font-weight: 700; margin-top: 2px; }
+  .ring-meta .val .of { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+  .ring-meta .left { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .ring-meta .left.hit { color: var(--success-text); font-weight: 600; }
+
+  /* ---------- cap meters ---------- */
+  .meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+  .meter .m-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .meter .m-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .meter .m-val { font-size: 13px; font-weight: 700; }
+  .meter .m-val .of { color: var(--text-muted); font-weight: 500; }
+  .meter .track { height: 10px; border-radius: 5px; background: var(--wash); overflow: hidden; }
+  .meter .fill { height: 100%; border-radius: 5px 0 0 5px; transition: width .3s ease; }
+  .meter .m-note { font-size: 12px; color: var(--text-muted); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+
+  /* ---------- add food ---------- */
+  .addrow { position: relative; }
+  .addrow input[type="text"], .addrow input[type="number"], select, input[type="date"] {
+    font-family: inherit; font-size: 14px; color: var(--text-primary);
+    background: var(--page); border: 1px solid var(--border); border-radius: 9px;
+    padding: 9px 12px; outline: none;
+  }
+  .addrow input:focus, select:focus { border-color: var(--protein); }
+  .add-grid { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .add-grid .search { flex: 1 1 240px; }
+  .add-grid .grams { width: 110px; }
+  .btn {
+    font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface-1);
+    color: var(--text-primary); border-radius: 9px; padding: 9px 16px;
+  }
+  .btn.primary { background: var(--text-primary); color: var(--page); border-color: transparent; }
+  .btn.small { padding: 5px 10px; font-size: 12.5px; border-radius: 7px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .suggest {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12); max-height: 300px; overflow: auto; display: none;
+  }
+  .suggest.open { display: block; }
+  .suggest .s-item { padding: 9px 14px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .suggest .s-item:hover, .suggest .s-item.sel { background: var(--wash); }
+  .suggest .s-name { font-weight: 600; font-size: 14px; }
+  .suggest .s-brand { color: var(--text-muted); font-weight: 400; font-size: 12.5px; }
+  .suggest .s-per { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  .picked {
+    display: none; margin-top: 10px; padding: 10px 12px; background: var(--wash);
+    border-radius: 10px; font-size: 13px;
+  }
+  .picked.show { display: block; }
+  .picked .p-name { font-weight: 700; }
+  .serv-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .chip {
+    font-family: inherit; border: 1px solid var(--border); background: var(--surface-1);
+    border-radius: 999px; padding: 4px 12px; font-size: 12.5px; cursor: pointer;
+    color: var(--text-secondary); font-weight: 600;
+  }
+  .chip:hover { border-color: var(--protein); color: var(--text-primary); }
+  .recent { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .preview-line { font-size: 12.5px; color: var(--text-secondary); margin-top: 8px; display: none; }
+  .preview-line.show { display: block; }
+
+  /* ---------- log list ---------- */
+  .meal-group { margin-top: 14px; }
+  .meal-group .m-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 6px; }
+  .entry {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    border-radius: 9px;
+  }
+  .entry:hover { background: var(--wash); }
+  .entry .e-name { font-weight: 600; font-size: 14px; }
+  .entry .e-grams { color: var(--text-muted); font-size: 13px; }
+  .entry .e-macros { margin-left: auto; font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
+  .entry .e-del {
+    border: 0; background: transparent; color: var(--text-muted); cursor: pointer;
+    font-size: 15px; padding: 2px 6px; border-radius: 6px; font-family: inherit;
+  }
+  .entry .e-del:hover { color: var(--critical); background: var(--wash); }
+  .empty-note { color: var(--text-muted); font-size: 13.5px; padding: 12px 0; }
+  .day-total-row { border-top: 1px solid var(--grid); margin-top: 12px; padding-top: 10px; font-size: 13px; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 14px; }
+  .day-total-row b { color: var(--text-primary); }
+
+  /* ---------- stat tiles / trends ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+  .tile .t-label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+  .tile .t-value { font-size: 26px; font-weight: 700; margin-top: 2px; }
+  .tile .t-value .unit { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+  .tile .t-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .charts { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .chart-card h2 { margin-bottom: 4px; }
+  .chart-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+  .chart-box { position: relative; }
+  .viz-tip {
+    position: absolute; pointer-events: none; z-index: 40; display: none;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 11px; font-size: 12.5px; box-shadow: 0 8px 24px rgba(0,0,0,.14);
+    min-width: 120px;
+  }
+  .viz-tip .tt-date { color: var(--text-muted); font-size: 11.5px; margin-bottom: 3px; }
+  .viz-tip .tt-row { display: flex; align-items: center; gap: 7px; }
+  .viz-tip .tt-key { width: 10px; height: 3px; border-radius: 2px; }
+  .viz-tip .tt-val { font-weight: 700; }
+  .viz-tip .tt-name { color: var(--text-secondary); }
+
+  /* ---------- foods tab ---------- */
+  .foods-toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .foods-toolbar input { flex: 1 1 220px; font-family: inherit; font-size: 14px; background: var(--page); color: var(--text-primary); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; outline: none; }
+  table.foods { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.foods th {
+    text-align: right; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--text-muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--grid);
+  }
+  table.foods th:first-child { text-align: left; }
+  table.foods td { padding: 7px 8px; border-bottom: 1px solid var(--grid); text-align: right; font-variant-numeric: tabular-nums; }
+  table.foods td:first-child { text-align: left; }
+  table.foods td .f-name { font-weight: 600; }
+  table.foods td .f-brand { color: var(--text-muted); font-size: 12px; }
+  table.foods tr:hover td { background: var(--wash); }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+  .form-grid label { font-size: 12px; font-weight: 600; color: var(--text-secondary); display: block; }
+  .form-grid input, .form-grid select { width: 100%; margin-top: 4px; font-family: inherit; font-size: 14px; background: var(--page); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; outline: none; }
+
+  /* ---------- settings ---------- */
+  .settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+  .settings-grid label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); display: block; }
+  .settings-grid input { width: 100%; margin-top: 4px; font-family: inherit; font-size: 14px; background: var(--page); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; outline: none; }
+  .settings-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .data-note { font-size: 13px; color: var(--text-secondary); margin-top: 10px; line-height: 1.55; }
+  .savestate { font-size: 12.5px; color: var(--text-muted); }
+  .savestate.dirty { color: var(--serious); font-weight: 600; }
+
+  /* ---------- toasts ---------- */
+  .toasts { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; width: min(480px, 92vw); }
+  .toast {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 16px; box-shadow: 0 12px 34px rgba(0,0,0,.18); font-size: 14px;
+    display: flex; gap: 10px; align-items: center; width: 100%;
+    animation: toast-in .25s ease;
+  }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .toast .t-icon { font-size: 18px; flex: none; }
+  .toast b { font-weight: 700; }
+  .toast.goal { border-left: 4px solid var(--good); }
+  .toast.warn { border-left: 4px solid var(--warning); }
+  .toast.over { border-left: 4px solid var(--critical); }
+  .toast.info { border-left: 4px solid var(--protein); }
+
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+
+  /* ---------- barcode scanner ---------- */
+  .scan-overlay {
+    position: fixed; inset: 0; z-index: 200; display: none;
+    background: rgba(0,0,0,.55); align-items: center; justify-content: center; padding: 16px;
+  }
+  .scan-overlay.open { display: flex; }
+  .scan-panel {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 16px;
+    width: min(460px, 96vw); padding: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  }
+  .scan-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  #scanReader { border-radius: 12px; overflow: hidden; min-height: 240px; background: #000; }
+  #scanReader video { width: 100%; display: block; }
+  .scan-hint { font-size: 13px; color: var(--text-secondary); margin-top: 10px; text-align: center; }
+  .off-item {
+    display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
+    padding: 9px 12px; border-radius: 9px; cursor: pointer; margin-top: 4px;
+  }
+  .off-item:hover { background: var(--wash); }
+  .off-item .o-name { font-weight: 600; font-size: 14px; }
+  .off-item .o-brand { color: var(--text-muted); font-size: 12.5px; font-weight: 400; }
+  .off-item .o-per { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  .section-gap { margin-top: 12px; }
+  .hidden { display: none !important; }
+
+  @media (max-width: 760px) {
+    .rings, .meters { grid-template-columns: 1fr; }
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Hello, Fat Ass! <span style="font-weight:500;color:var(--text-muted);font-size:13px">let's fix that</span></h1>
+    <div class="streaks" id="streakChips"></div>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐</button>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="today" class="active">Today</button>
+    <button data-tab="trends">Trends</button>
+    <button data-tab="foods">Foods</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+
+  <!-- ================= TODAY ================= -->
+  <section id="tab-today">
+    <div class="datebar">
+      <button id="prevDay" title="Previous day">‹</button>
+      <div class="datelabel" id="dateLabel"></div>
+      <button id="nextDay" title="Next day">›</button>
+      <button class="today-btn" id="jumpToday">Today</button>
+    </div>
+
+    <div class="card strip" id="statusStrip"></div>
+
+    <div class="card addrow section-gap">
+      <h2>Log a food <span class="sub">· weigh it, type it, done</span></h2>
+      <div class="add-grid">
+        <input type="text" class="search" id="foodSearch" placeholder="Search foods… (e.g. oat bran, chia, FAGE)" autocomplete="off">
+        <input type="number" class="grams" id="gramsInput" placeholder="grams" min="0" step="any">
+        <select id="mealSelect">
+          <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
+        </select>
+        <button class="btn primary" id="addBtn" disabled>Add</button>
+      </div>
+      <div class="suggest" id="suggestBox"></div>
+      <div class="picked" id="pickedBox"></div>
+      <div class="preview-line" id="previewLine"></div>
+      <div class="recent" id="recentChips"></div>
+    </div>
+
+    <div class="card section-gap">
+      <h2>Today's log</h2>
+      <div id="logList"></div>
+      <div class="day-total-row" id="dayTotals"></div>
+    </div>
+
+    <div class="rings section-gap">
+      <div class="card ring-card" id="ringCal"></div>
+      <div class="card ring-card" id="ringProtein"></div>
+      <div class="card ring-card" id="ringFiber"></div>
+    </div>
+
+    <div class="meters">
+      <div class="card meter" id="meterSodium"></div>
+      <div class="card meter" id="meterSatfat"></div>
+      <div class="card meter" id="meterSugar"></div>
+    </div>
+  </section>
+
+  <!-- ================= TRENDS ================= -->
+  <section id="tab-trends" class="hidden">
+    <div class="tiles" id="trendTiles"></div>
+    <div class="charts">
+      <div class="card chart-card">
+        <h2>Fiber, last 14 days</h2>
+        <div class="chart-sub" id="fiberChartSub"></div>
+        <div class="chart-box" id="fiberChart"></div>
+      </div>
+      <div class="card chart-card">
+        <h2>Protein, last 14 days</h2>
+        <div class="chart-sub" id="proteinChartSub"></div>
+        <div class="chart-box" id="proteinChart"></div>
+      </div>
+      <div class="card chart-card">
+        <h2>Calories, last 14 days</h2>
+        <div class="chart-sub" id="calChartSub"></div>
+        <div class="chart-box" id="calChart"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOODS ================= -->
+  <section id="tab-foods" class="hidden">
+    <div class="card">
+      <h2>Look it up <span class="sub">· scan a barcode or search 2M+ products (Open Food Facts)</span></h2>
+      <div class="add-grid">
+        <button class="btn primary" id="scanBtn">📷 Scan barcode</button>
+        <button class="btn" id="labelBtn">🏷️ Scan label</button>
+        <input type="file" id="labelFile" accept="image/*" capture="environment" class="hidden">
+        <input type="text" class="search" id="offSearch" placeholder="…or search by product name" autocomplete="off">
+        <button class="btn" id="offSearchBtn">Search</button>
+      </div>
+      <div id="offResults"></div>
+      <div class="savestate" id="offMsg" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card section-gap">
+      <h2>Add a food <span class="sub">· enter the label values for one serving, I'll convert to per-gram</span></h2>
+      <div class="form-grid">
+        <div><label>Name<input id="nf-name" type="text" placeholder="e.g. Ezekiel bread"></label></div>
+        <div><label>Brand (optional)<input id="nf-brand" type="text"></label></div>
+        <div><label>Serving weight (g)<input id="nf-sg" type="number" min="0" step="any" placeholder="e.g. 34"></label></div>
+        <div><label>Calories<input id="nf-cal" type="number" min="0" step="any"></label></div>
+        <div><label>Protein (g)<input id="nf-p" type="number" min="0" step="any"></label></div>
+        <div><label>Carbs (g)<input id="nf-c" type="number" min="0" step="any"></label></div>
+        <div><label>Fiber (g)<input id="nf-fib" type="number" min="0" step="any"></label></div>
+        <div><label>Total fat (g)<input id="nf-f" type="number" min="0" step="any"></label></div>
+        <div><label>Saturated fat (g)<input id="nf-sf" type="number" min="0" step="any"></label></div>
+        <div><label>Total sugar (g)<input id="nf-sug" type="number" min="0" step="any"></label></div>
+        <div><label>Added sugar (g)<input id="nf-asug" type="number" min="0" step="any"></label></div>
+        <div><label>Sodium (mg)<input id="nf-na" type="number" min="0" step="any"></label></div>
+      </div>
+      <div class="settings-actions">
+        <button class="btn primary" id="saveFoodBtn">Save food</button>
+        <span class="savestate" id="foodFormMsg"></span>
+      </div>
+    </div>
+
+    <div class="card section-gap">
+      <h2>Saved meals <span class="sub">· log a whole recipe with one tap. Build one by logging its ingredients, then hit "save as meal" next to that meal in Today's log</span></h2>
+      <div id="mealsList"></div>
+    </div>
+
+    <div class="card section-gap">
+      <h2>Food database <span class="sub" id="foodCount"></span></h2>
+      <div class="foods-toolbar">
+        <input type="text" id="foodsFilter" placeholder="Filter foods…">
+      </div>
+      <div style="overflow-x:auto">
+        <table class="foods">
+          <thead>
+            <tr><th>Food (per 100g)</th><th>kcal</th><th>Protein</th><th>Carbs</th><th>Fiber</th><th>Fat</th><th>Sat</th><th>Sugar</th><th>Added</th><th>Na mg</th><th></th></tr>
+          </thead>
+          <tbody id="foodsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SETTINGS ================= -->
+  <section id="tab-settings" class="hidden">
+    <div class="card">
+      <h2>Daily goals</h2>
+      <div class="settings-grid">
+        <div><label>Calorie target (kcal)<input id="g-cal" type="number" min="0"></label></div>
+        <div><label>Protein goal (g)<input id="g-protein" type="number" min="0"></label></div>
+        <div><label>Fiber goal (g)<input id="g-fiber" type="number" min="0"></label></div>
+        <div><label>Carb guide (g)<input id="g-carbs" type="number" min="0"></label></div>
+        <div><label>Fat guide (g)<input id="g-fat" type="number" min="0"></label></div>
+      </div>
+      <h2 style="margin-top:18px">Caps (warn at 80%, alert when over)</h2>
+      <div class="settings-grid">
+        <div><label>Sodium cap (mg)<input id="g-sodium" type="number" min="0"></label></div>
+        <div><label>Saturated fat cap (g)<input id="g-satfat" type="number" min="0"></label></div>
+        <div><label>Added sugar cap (g)<input id="g-asug" type="number" min="0"></label></div>
+      </div>
+      <div class="settings-actions">
+        <button class="btn primary" id="saveGoalsBtn">Save goals</button>
+        <span class="savestate" id="goalsMsg"></span>
+      </div>
+    </div>
+
+    <div class="card section-gap">
+      <h2>Your data</h2>
+      <div class="data-note">
+        Your log saves automatically on this device (look for “Saved on this device ✓”
+        below), so on your phone or laptop it's just there when you come back.
+        Two extras: <b>Connect data file</b> (desktop Chrome/Edge) additionally autosaves
+        every change to <b>nutrition-data.json</b> in your Nutrition Tracker folder, which
+        is the file Claude reads and writes in chat. And <b>Export / Import</b> moves your
+        data between devices — export here, import there — or gets a copy to Claude for
+        trend analysis.
+      </div>
+      <div class="settings-actions">
+        <button class="btn primary" id="connectFileBtn">Connect data file</button>
+        <button class="btn" id="exportBtn">Export JSON</button>
+        <button class="btn" id="importBtn">Import JSON</button>
+        <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+        <span class="savestate" id="saveState"></span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<canvas id="confetti"></canvas>
+
+<div class="scan-overlay" id="scanOverlay">
+  <div class="scan-panel">
+    <div class="scan-head">
+      <b>Scan a barcode</b>
+      <button class="btn small" id="scanClose">Close</button>
+    </div>
+    <div id="scanReader"></div>
+    <div class="scan-hint" id="scanHint">Point the camera at the UPC barcode…</div>
+  </div>
+</div>
+<script>
+'use strict';
+/* =====================================================================
+   Ralph's Nutrition Tracker
+   Data model:
+   data = {
+     version: 1,
+     goals: { calories, protein, fiber, carbs, fat, sodium, satfat, addedsugar },
+     foods: [ {id, name, brand, per100:{cal,protein,carbs,fiber,fat,satfat,sugar,addedsugar,sodium}, servings:[[label,grams]], custom} ],
+     log:   { 'YYYY-MM-DD': [ {f: foodId, g: grams, meal, t: epoch-ms} ] },
+     celebrated: { 'YYYY-MM-DD': ['fiber','protein'] }
+   }
+   ===================================================================== */
+
+const N = (cal, protein, carbs, fiber, fat, satfat, sugar, addedsugar, sodium) =>
+  ({ cal, protein, carbs, fiber, fat, satfat, sugar, addedsugar, sodium });
+
+/* ---------- Ralph's products (from labels, converted to per 100g) ---------- */
+const DEFAULT_FOODS = [
+  { id:'naked-whey-iso', name:'Whey protein isolate', brand:'Naked Whey Iso',
+    per100:N(375,93.8,0,0,0,0,0,0,203), servings:[['1 scoop (16g)',16],['2 scoops (32g)',32]] },
+  { id:'naked-pb', name:'Powdered peanut butter', brand:'Naked PB',
+    per100:N(400,53.3,33.3,13.3,13.3,0,0,0,0), servings:[['1 scoop (15g)',15],['1 tbsp (7.5g)',7.5]] },
+  { id:'flaxseed-ground', name:'Ground flaxseed', brand:'365 Whole Foods',
+    per100:N(588,23.5,29.4,23.5,41.2,2.9,0,0,59), servings:[['1 tbsp (8.5g)',8.5],['2 tbsp (17g)',17]] },
+  { id:'chia-seeds', name:'Chia seeds, black', brand:'365 Whole Foods',
+    per100:N(500,20,43.3,33.3,33.3,3.3,0,0,0), servings:[['1 tbsp (10g)',10],['3 tbsp (30g)',30]] },
+  { id:'oat-bran', name:'Oat bran, dry', brand:"Bob's Red Mill",
+    per100:N(375,17.5,65,17.5,6.3,1.3,2.5,0,0), servings:[['1/3 cup dry (40g)',40]] },
+  { id:'brm-rolled-oats', name:'Rolled oats, organic whole grain', brand:"Bob's Red Mill",
+    per100:N(375,10.4,68.8,6.3,6.3,1,2.1,0,0), servings:[['1/2 cup dry (48g)',48],['1/4 cup dry (24g)',24]] },
+  { id:'muesli-blueberry', name:'Blueberry chia muesli', brand:'Seven Sundays',
+    per100:N(400,13.3,66.7,10,10,5,11.7,6.7,8.3), servings:[['1/2 cup (60g)',60]] },
+  { id:'almond-milk-elmhurst', name:'Almond milk, unsweetened', brand:'Elmhurst',
+    per100:N(54,2.1,1.3,0,4.6,0.4,0.4,0,2.1), servings:[['1 cup (240g)',240],['1/2 cup (120g)',120]] },
+  { id:'maple-syrup', name:'Maple syrup, organic', brand:'Kirkland',
+    per100:N(275,0,67.5,0,0,0,60,60,0), servings:[['1 tbsp (20g)',20],['2 tbsp (40g)',40]] },
+  { id:'fage-2', name:'Greek yogurt, 2%', brand:'FAGE Total',
+    per100:N(70.6,10,2.9,0,2.1,1.5,2.9,0,32.4), servings:[['3/4 cup (170g)',170],['1 cup (227g)',227]] },
+  { id:'fage-5', name:'Greek yogurt, 5%', brand:'FAGE Total',
+    per100:N(93.3,9.3,3.3,0,5.3,3.3,3.3,0,36.7), servings:[['single cup (150g)',150],['3/4 cup (170g)',170]] },
+
+  /* ---------- common ingredients (USDA-typical, per 100g) ---------- */
+  { id:'chicken-breast-cooked', name:'Chicken breast, cooked', per100:N(165,31,0,0,3.6,1,0,0,74), servings:[['small breast (120g)',120],['large breast (180g)',180]] },
+  { id:'chicken-breast-raw', name:'Chicken breast, raw', per100:N(120,22.5,0,0,2.6,0.6,0,0,63), servings:[] },
+  { id:'chicken-thigh-cooked', name:'Chicken thigh, cooked, skinless', per100:N(209,26,0,0,10.9,3,0,0,88), servings:[['1 thigh (85g)',85]] },
+  { id:'ground-beef-93', name:'Ground beef 93/7, cooked', per100:N(182,25.8,0,0,8,3.4,0,0,72), servings:[['4 oz cooked (113g)',113]] },
+  { id:'ground-turkey-93', name:'Ground turkey 93/7, cooked', per100:N(207,27,0,0,10.4,2.7,0,0,78), servings:[['4 oz cooked (113g)',113]] },
+  { id:'salmon-cooked', name:'Salmon, cooked', per100:N(206,22,0,0,12.4,2.5,0,0,61), servings:[['fillet (150g)',150]] },
+  { id:'tuna-canned-water', name:'Tuna, canned in water, drained', per100:N(116,25.5,0,0,0.8,0.2,0,0,338), servings:[['1 can drained (142g)',142]] },
+  { id:'shrimp-cooked', name:'Shrimp, cooked', per100:N(99,24,0.2,0,0.3,0.1,0,0,111), servings:[] },
+  { id:'egg-whole', name:'Egg, whole', per100:N(143,12.6,0.7,0,9.5,3.1,0.4,0,142), servings:[['1 large egg (50g)',50],['2 large eggs (100g)',100]] },
+  { id:'egg-white', name:'Egg whites', per100:N(52,10.9,0.7,0,0.2,0,0.7,0,166), servings:[['1 large white (33g)',33]] },
+  { id:'tofu-firm', name:'Tofu, firm', per100:N(83,9.9,1.9,0.9,5.3,0.8,0.6,0,10), servings:[['1/2 block (170g)',170]] },
+  { id:'deli-turkey', name:'Turkey breast, deli sliced', per100:N(104,17,3.5,0,1.7,0.4,2.1,1,1015), servings:[['2 slices (56g)',56]] },
+
+  { id:'oats-rolled', name:'Rolled oats, dry', per100:N(379,13.2,67.7,10.1,6.5,1.2,1,0,6), servings:[['1/2 cup dry (40g)',40]] },
+  { id:'rice-white-cooked', name:'White rice, cooked', per100:N(130,2.7,28.2,0.4,0.3,0.1,0,0,1), servings:[['1 cup (158g)',158]] },
+  { id:'rice-brown-cooked', name:'Brown rice, cooked', per100:N(123,2.7,25.6,1.6,1,0.3,0.2,0,4), servings:[['1 cup (195g)',195]] },
+  { id:'quinoa-cooked', name:'Quinoa, cooked', per100:N(120,4.4,21.3,2.8,1.9,0.2,0.9,0,7), servings:[['1 cup (185g)',185]] },
+  { id:'bread-whole-wheat', name:'Whole wheat bread', per100:N(247,13,41,6.8,3.4,0.7,5.6,4.3,450), servings:[['1 slice (43g)',43],['2 slices (86g)',86]] },
+  { id:'pasta-dry', name:'Pasta, dry', per100:N(371,13,74.7,3.2,1.5,0.3,2.7,0,6), servings:[['2 oz dry (56g)',56]] },
+  { id:'pasta-whole-wheat-dry', name:'Whole wheat pasta, dry', per100:N(348,14.6,75,9,1.4,0.3,2.9,0,8), servings:[['2 oz dry (56g)',56]] },
+  { id:'sweet-potato-raw', name:'Sweet potato, raw', per100:N(86,1.6,20.1,3,0.1,0,4.2,0,55), servings:[['medium (130g)',130]] },
+  { id:'potato-raw', name:'Potato, raw', per100:N(77,2,17.5,2.1,0.1,0,0.8,0,6), servings:[['medium (213g)',213]] },
+  { id:'tortilla-flour', name:'Flour tortilla', per100:N(306,8.2,49,3.1,8.1,2,3.5,1.5,640), servings:[['1 medium (45g)',45]] },
+
+  { id:'lentils-cooked', name:'Lentils, cooked', per100:N(116,9,20.1,7.9,0.4,0.1,1.8,0,2), servings:[['1 cup (198g)',198]] },
+  { id:'black-beans-cooked', name:'Black beans, cooked', per100:N(132,8.9,23.7,8.7,0.5,0.1,0.3,0,1), servings:[['1/2 can drained (120g)',120]] },
+  { id:'chickpeas-cooked', name:'Chickpeas, cooked', per100:N(164,8.9,27.4,7.6,2.6,0.3,4.8,0,7), servings:[['1/2 can drained (120g)',120]] },
+  { id:'edamame-shelled', name:'Edamame, shelled', per100:N(121,11.9,8.9,5.2,5.2,0.6,2.2,0,6), servings:[['1 cup (155g)',155]] },
+  { id:'hummus', name:'Hummus', per100:N(166,7.9,14.3,6,9.6,1.4,0.3,0,379), servings:[['2 tbsp (30g)',30]] },
+
+  { id:'banana', name:'Banana', per100:N(89,1.1,22.8,2.6,0.3,0.1,12.2,0,1), servings:[['medium (118g)',118]] },
+  { id:'apple', name:'Apple', per100:N(52,0.3,13.8,2.4,0.2,0,10.4,0,1), servings:[['medium (182g)',182]] },
+  { id:'blueberries', name:'Blueberries', per100:N(57,0.7,14.5,2.4,0.3,0,10,0,1), servings:[['1 cup (148g)',148]] },
+  { id:'strawberries', name:'Strawberries', per100:N(32,0.7,7.7,2,0.3,0,4.9,0,1), servings:[['1 cup sliced (166g)',166]] },
+  { id:'raspberries', name:'Raspberries', per100:N(52,1.2,11.9,6.5,0.7,0,4.4,0,1), servings:[['1 cup (123g)',123]] },
+  { id:'orange', name:'Orange', per100:N(47,0.9,11.8,2.4,0.1,0,9.4,0,0), servings:[['medium (131g)',131]] },
+  { id:'avocado', name:'Avocado', per100:N(160,2,8.5,6.7,14.7,2.1,0.7,0,7), servings:[['1/2 avocado (100g)',100]] },
+
+  { id:'broccoli', name:'Broccoli, raw', per100:N(34,2.8,6.6,2.6,0.4,0,1.7,0,33), servings:[['1 cup chopped (91g)',91]] },
+  { id:'spinach', name:'Spinach, raw', per100:N(23,2.9,3.6,2.2,0.4,0.1,0.4,0,79), servings:[['2 cups (60g)',60]] },
+  { id:'kale', name:'Kale, raw', per100:N(35,2.9,4.4,4.1,1.5,0.2,1,0,53), servings:[['2 cups chopped (42g)',42]] },
+  { id:'brussels-sprouts', name:'Brussels sprouts, raw', per100:N(43,3.4,8.9,3.8,0.3,0.1,2.2,0,25), servings:[['1 cup (88g)',88]] },
+  { id:'carrots', name:'Carrots, raw', per100:N(41,0.9,9.6,2.8,0.2,0,4.7,0,69), servings:[['medium (61g)',61]] },
+  { id:'bell-pepper', name:'Bell pepper, raw', per100:N(31,1,6,2.1,0.3,0.1,4.2,0,4), servings:[['medium (119g)',119]] },
+  { id:'tomato', name:'Tomato, raw', per100:N(18,0.9,3.9,1.2,0.2,0,2.6,0,5), servings:[['medium (123g)',123]] },
+  { id:'onion', name:'Onion, raw', per100:N(40,1.1,9.3,1.7,0.1,0,4.2,0,4), servings:[['medium (110g)',110]] },
+  { id:'cucumber', name:'Cucumber, raw', per100:N(15,0.7,3.6,0.5,0.1,0,1.7,0,2), servings:[] },
+  { id:'cauliflower', name:'Cauliflower, raw', per100:N(25,1.9,5,2,0.3,0.1,1.9,0,30), servings:[['1 cup (107g)',107]] },
+
+  { id:'almonds', name:'Almonds', per100:N(579,21.2,21.6,12.5,49.9,3.8,4.4,0,1), servings:[['small handful (28g)',28]] },
+  { id:'walnuts', name:'Walnuts', per100:N(654,15.2,13.7,6.7,65.2,6.1,2.6,0,2), servings:[['small handful (28g)',28]] },
+  { id:'peanut-butter', name:'Peanut butter', per100:N(588,25,20,6,50,10,9,3,430), servings:[['1 tbsp (16g)',16],['2 tbsp (32g)',32]] },
+  { id:'olive-oil', name:'Olive oil', per100:N(884,0,0,0,100,13.8,0,0,2), servings:[['1 tbsp (13.5g)',13.5]] },
+  { id:'butter-salted', name:'Butter, salted', per100:N(717,0.9,0.1,0,81.1,51.4,0.1,0,643), servings:[['1 tbsp (14g)',14]] },
+  { id:'cheddar', name:'Cheddar cheese', per100:N(403,24.9,1.3,0,33.1,21,0.5,0,621), servings:[['1 oz (28g)',28]] },
+  { id:'mozzarella-part-skim', name:'Mozzarella, part-skim', per100:N(254,24.3,3.1,0,15.9,10.1,1.2,0,619), servings:[['1 oz (28g)',28]] },
+  { id:'parmesan', name:'Parmesan, grated', per100:N(431,38.5,4.1,0,28.6,19.1,0.9,0,1529), servings:[['1 tbsp (5g)',5]] },
+  { id:'milk-2', name:'Milk, 2%', per100:N(50,3.3,4.8,0,2,1.3,4.9,0,44), servings:[['1 cup (244g)',244]] },
+  { id:'dark-chocolate-70', name:'Dark chocolate, 70-85%', per100:N(598,7.8,45.9,10.9,42.6,24.5,24,24,20), servings:[['2 squares (20g)',20]] },
+  { id:'honey', name:'Honey', per100:N(304,0.3,82.4,0.2,0,0,82.1,82.1,4), servings:[['1 tbsp (21g)',21]] },
+  { id:'cinnamon-ground', name:'Cinnamon, ground', per100:N(247,4,80.6,53.1,1.2,0.3,2.2,0,10), servings:[['1 tsp (2.6g)',2.6]] },
+
+  /* ---------- "it happens" — generic restaurant/bakery estimates ---------- */
+  { id:'est-pizza-cheese', name:'Pizza, cheese slice', brand:'It happens · estimate', per100:N(266,11,33,2.3,10,4.5,3.6,2,598), servings:[['1 regular slice (110g)',110],['1 large/NY slice (140g)',140]] },
+  { id:'est-pizza-pepperoni', name:'Pizza, pepperoni slice', brand:'It happens · estimate', per100:N(298,12.9,32,2.2,13,5.5,3.8,2,683), servings:[['1 regular slice (110g)',110],['1 large/NY slice (140g)',140]] },
+  { id:'est-chicken-tenders', name:'Chicken tenders, fried', brand:'It happens · estimate', per100:N(290,17.5,16,1,17,3.5,0.5,0,850), servings:[['1 tender (50g)',50],['3 tenders (150g)',150]] },
+  { id:'est-fries', name:'French fries', brand:'It happens · estimate', per100:N(312,3.4,41,3.8,15,2.3,0.3,0,210), servings:[['small (85g)',85],['medium (115g)',115]] },
+  { id:'est-blueberry-muffin', name:'Blueberry muffin, bakery', brand:'It happens · estimate', per100:N(375,5,53,1.5,16,2.7,28,26,330), servings:[['1 bakery muffin (120g)',120],['1 small muffin (60g)',60]] },
+  { id:'est-donut-glazed', name:'Donut, glazed', brand:'It happens · estimate', per100:N(421,5,49,1.3,23,10,23,22,380), servings:[['1 donut (60g)',60]] },
+  { id:'est-choc-chip-cookie', name:'Chocolate chip cookie, bakery', brand:'It happens · estimate', per100:N(488,5,64,2,24,11,35,33,340), servings:[['1 bakery cookie (75g)',75],['1 small cookie (30g)',30]] },
+  { id:'est-ice-cream-vanilla', name:'Ice cream, vanilla', brand:'It happens · estimate', per100:N(207,3.5,24,0.7,11,6.8,21,17,80), servings:[['1/2 cup (66g)',66],['1 cup (132g)',132]] },
+  { id:'est-cheeseburger', name:'Cheeseburger, fast food', brand:'It happens · estimate', per100:N(263,15,26,1.2,12,5.5,6,4,610), servings:[['1 single burger (115g)',115],['1 quarter-pound burger (200g)',200]] },
+  { id:'est-tortilla-chips', name:'Tortilla chips', brand:'It happens · estimate', per100:N(503,7,66,4.5,23,3,0.9,0,420), servings:[['small handful (28g)',28],['big handful (50g)',50]] },
+];
+
+/* Ralph's daily overnight oats — logged with one tap */
+const DEFAULT_MEALS = [
+  { id:'meal-overnight-oats', name:'Overnight oats', items:[
+    { f:'brm-rolled-oats', g:48 },       // 1/2 cup dry
+    { f:'naked-whey-iso', g:16 },        // 1 scoop
+    { f:'naked-pb', g:15 },              // 1 scoop
+    { f:'chia-seeds', g:10 },            // 1 tbsp
+    { f:'flaxseed-ground', g:8.5 },      // 1 tbsp
+    { f:'maple-syrup', g:30 },           // 1.5 tbsp
+    { f:'almond-milk-elmhurst', g:120 }, // 1/2 cup
+    { f:'cinnamon-ground', g:2.6 }       // 1 tsp
+  ] }
+];
+const MIGRATE_FOOD_IDS = ['cinnamon-ground', 'brm-rolled-oats'];
+const DATA_VERSION = 2;
+
+const DEFAULT_GOALS = {
+  calories: 2150, protein: 180, fiber: 40, carbs: 200, fat: 70,
+  sodium: 2300, satfat: 24, addedsugar: 30
+};
+
+const NUTRIENT_KEYS = ['cal','protein','carbs','fiber','fat','satfat','sugar','addedsugar','sodium'];
+
+/* ================= state ================= */
+let data = {
+  version: DATA_VERSION,
+  goals: { ...DEFAULT_GOALS },
+  foods: JSON.parse(JSON.stringify(DEFAULT_FOODS)),
+  meals: JSON.parse(JSON.stringify(DEFAULT_MEALS)),
+  log: {},
+  celebrated: {}
+};
+let selectedDate = todayISO();
+let picked = null;            // currently selected food object
+let pickedMeal = null;        // currently selected saved meal
+let fileHandle = null;        // File System Access handle
+let dirty = false;
+let saveTimer = null;
+const warnedThisSession = new Set();   // `${date}|${metric}|${level}`
+
+/* ================= helpers ================= */
+function todayISO(d) {
+  const dt = d || new Date();
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+function isoToDate(iso) { const [y,m,d] = iso.split('-').map(Number); return new Date(y, m-1, d); }
+function shiftISO(iso, days) { const d = isoToDate(iso); d.setDate(d.getDate()+days); return todayISO(d); }
+function fmt(n, dec) {
+  if (!isFinite(n)) return '0';
+  const d = dec !== undefined ? dec : (Math.abs(n) >= 100 ? 0 : (Math.abs(n) >= 10 ? (Math.abs(n % 1) > 0.049 ? 1 : 0) : (Math.abs(n % 1) > 0.049 ? 1 : 0)));
+  return Number(n.toFixed(d)).toLocaleString('en-US');
+}
+function fmtInt(n) { return Math.round(n).toLocaleString('en-US'); }
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function clearNode(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+function foodById(id) { return data.foods.find(f => f.id === id); }
+function entryNutrients(entry) {
+  const f = foodById(entry.f);
+  if (!f) return N(0,0,0,0,0,0,0,0,0);
+  const k = entry.g / 100;
+  const out = {};
+  NUTRIENT_KEYS.forEach(key => out[key] = (f.per100[key] || 0) * k);
+  return out;
+}
+function mealNutrients(meal, mult) {
+  const t = N(0,0,0,0,0,0,0,0,0);
+  (meal.items || []).forEach(item => {
+    const n = entryNutrients({ f: item.f, g: item.g * (mult || 1) });
+    NUTRIENT_KEYS.forEach(k => t[k] += n[k]);
+  });
+  return t;
+}
+function dayTotals(iso) {
+  const entries = data.log[iso] || [];
+  const t = N(0,0,0,0,0,0,0,0,0);
+  entries.forEach(e => {
+    const n = entryNutrients(e);
+    NUTRIENT_KEYS.forEach(k => t[k] += n[k]);
+  });
+  return t;
+}
+function hasEntries(iso) { return (data.log[iso] || []).length > 0; }
+
+/* ================= streaks ================= */
+function streak(metric) {
+  // consecutive days (ending today, or yesterday if today not yet hit) meeting the goal
+  const goal = data.goals[metric === 'fiber' ? 'fiber' : 'protein'];
+  let count = 0;
+  let iso = todayISO();
+  const todayHit = dayTotals(iso)[metric] >= goal;
+  if (!todayHit) iso = shiftISO(iso, -1);
+  while (hasEntries(iso) && dayTotals(iso)[metric] >= goal) {
+    count++;
+    iso = shiftISO(iso, -1);
+    if (count > 3650) break;
+  }
+  return { count, includesToday: todayHit };
+}
+
+/* ================= persistence ================= */
+const STORE_KEY = 'hfa-data';
+const deviceStore = (() => {
+  // Guarded: some embedded contexts block storage entirely — degrade silently.
+  try {
+    const s = window.localStorage;
+    s.setItem('hfa-probe', '1'); s.removeItem('hfa-probe');
+    return {
+      load() { try { const t = s.getItem(STORE_KEY); return t ? JSON.parse(t) : null; } catch (e) { return null; } },
+      save(text) { try { s.setItem(STORE_KEY, text); return true; } catch (e) { return false; } }
+    };
+  } catch (e) {
+    return { load: () => null, save: () => false };
+  }
+})();
+let deviceSaved = false;
+
+function serialize() { return JSON.stringify(data, null, 2); }
+function markDirty() {
+  dirty = true;
+  deviceSaved = deviceStore.save(serialize());
+  if (deviceSaved && !fileHandle) dirty = false;
+  scheduleAutosave();
+  updateSaveState();
+}
+function scheduleAutosave() {
+  if (!fileHandle) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToFile, 600);
+}
+async function saveToFile() {
+  if (!fileHandle) return;
+  try {
+    const w = await fileHandle.createWritable();
+    await w.write(serialize());
+    await w.close();
+    dirty = false;
+    updateSaveState();
+  } catch (err) {
+    toast('warn', '⚠️', 'Autosave failed. Use Export to keep your data.');
+  }
+}
+function updateSaveState() {
+  const s = document.getElementById('saveState');
+  if (fileHandle) {
+    s.textContent = dirty ? 'Saving…' : 'Autosaving to nutrition-data.json ✓';
+    s.classList.remove('dirty');
+  } else if (deviceSaved) {
+    s.textContent = 'Saved on this device ✓';
+    s.classList.remove('dirty');
+  } else if (dirty) {
+    s.textContent = 'Unsaved changes — connect a data file or export';
+    s.classList.add('dirty');
+  } else {
+    s.textContent = '';
+    s.classList.remove('dirty');
+  }
+}
+function adoptData(obj) {
+  if (!obj || typeof obj !== 'object' || !obj.goals || !obj.foods) throw new Error('bad file');
+  data = {
+    version: obj.version || 1,
+    goals: { ...DEFAULT_GOALS, ...obj.goals },
+    foods: Array.isArray(obj.foods) && obj.foods.length ? obj.foods : JSON.parse(JSON.stringify(DEFAULT_FOODS)),
+    meals: Array.isArray(obj.meals) ? obj.meals : JSON.parse(JSON.stringify(DEFAULT_MEALS)),
+    log: obj.log || {},
+    celebrated: obj.celebrated || {}
+  };
+  // migration: newer built-in foods that older saved data won't have
+  MIGRATE_FOOD_IDS.forEach(id => {
+    if (!data.foods.find(f => f.id === id)) {
+      const src = DEFAULT_FOODS.find(f => f.id === id);
+      if (src) data.foods.push(JSON.parse(JSON.stringify(src)));
+    }
+  });
+  // v2: overnight oats corrected from oat bran to Ralph's actual rolled oats (label-verified)
+  if ((obj.version || 1) < 2) {
+    const oo = (data.meals || []).find(m => m.id === 'meal-overnight-oats');
+    if (oo) {
+      const item = oo.items.find(it => it.f === 'oat-bran' && it.g === 60);
+      if (item) { item.f = 'brm-rolled-oats'; item.g = 48; }
+    }
+  }
+  data.version = DATA_VERSION;
+}
+async function connectFile() {
+  if (!window.showOpenFilePicker) {
+    toast('info', 'ℹ️', 'This browser doesn’t support direct file access. Use Export / Import instead.');
+    return;
+  }
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+    });
+    const file = await handle.getFile();
+    const text = await file.text();
+    let loaded = false;
+    if (text.trim()) {
+      try {
+        const obj = JSON.parse(text);
+        const entryCount = obj.log ? Object.values(obj.log).reduce((a, arr) => a + arr.length, 0) : 0;
+        const myCount = Object.values(data.log).reduce((a, arr) => a + arr.length, 0);
+        if (entryCount >= myCount) { adoptData(obj); loaded = true; }
+      } catch (e) { /* unreadable -> overwrite below */ }
+    }
+    fileHandle = handle;
+    if (loaded) {
+      toast('info', '📂', 'Loaded your data file. Changes now autosave.');
+      renderAll();
+    } else {
+      dirty = true;
+      await saveToFile();
+      toast('info', '📂', 'Connected. Your current log was written to the file and changes now autosave.');
+    }
+    updateSaveState();
+  } catch (err) { /* user cancelled */ }
+}
+function exportJSON() {
+  const blob = new Blob([serialize()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'nutrition-data.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  dirty = false;
+  updateSaveState();
+}
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      adoptData(JSON.parse(reader.result));
+      dirty = false;
+      renderAll();
+      toast('info', '📂', 'Data imported.');
+    } catch (e) {
+      toast('warn', '⚠️', 'That file didn’t look like tracker data.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ================= toasts & confetti ================= */
+function toast(kind, icon, html, ms) {
+  const box = document.getElementById('toasts');
+  const t = el('div', 'toast ' + kind);
+  const ic = el('span', 't-icon', icon);
+  const body = el('div');
+  body.append(...html.split(/\*\*(.+?)\*\*/g).map((part, i) => i % 2 ? Object.assign(el('b'), {textContent: part}) : document.createTextNode(part)));
+  t.append(ic, body);
+  box.append(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; }, (ms || 5200) - 400);
+  setTimeout(() => t.remove(), ms || 5200);
+}
+function confetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = innerWidth; canvas.height = innerHeight;
+  const colors = ['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4'];
+  const parts = Array.from({length: 140}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.4,
+    w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+    c: colors[Math.floor(Math.random() * colors.length)],
+    vy: 2.2 + Math.random() * 3, vx: -1.2 + Math.random() * 2.4,
+    rot: Math.random() * Math.PI, vr: -0.12 + Math.random() * 0.24
+  }));
+  let frames = 0;
+  (function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    if (++frames < 220) requestAnimationFrame(tick);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+}
+
+/* ================= goal / cap checks on add ================= */
+function checkMilestones(before, after) {
+  const iso = selectedDate;
+  const isToday = iso === todayISO();
+  const g = data.goals;
+  const celebrated = data.celebrated[iso] || (data.celebrated[iso] = []);
+
+  // goals up: protein, fiber
+  [['fiber', 'Fiber', 'g'], ['protein', 'Protein', 'g']].forEach(([key, label, unit]) => {
+    if (before[key] < g[key] && after[key] >= g[key] && !celebrated.includes(key)) {
+      celebrated.push(key);
+      const s = streak(key);
+      const streakNote = isToday && s.count >= 2 ? ` That’s ${s.count} days in a row.` : '';
+      toast('goal', '🎉', `**${label} goal hit** — ${fmtInt(after[key])}${unit} of ${g[key]}${unit}.${streakNote}`, 6500);
+      if (isToday) confetti();
+    }
+  });
+
+  // caps: warn crossing 80% (calories 90%), alert crossing 100%
+  const caps = [
+    ['cal', g.calories, 'Calories', 'kcal', 0.9],
+    ['sodium', g.sodium, 'Sodium', 'mg', 0.8],
+    ['satfat', g.satfat, 'Saturated fat', 'g', 0.8],
+    ['addedsugar', g.addedsugar, 'Added sugar', 'g', 0.8],
+  ];
+  caps.forEach(([key, cap, label, unit, warnAt]) => {
+    if (!cap) return;
+    const overKey = iso + '|' + key + '|over', warnKey = iso + '|' + key + '|warn';
+    if (before[key] < cap && after[key] >= cap && !warnedThisSession.has(overKey)) {
+      warnedThisSession.add(overKey);
+      toast('over', '🛑', `**Over the ${label.toLowerCase()} cap** — ${fmtInt(after[key])}${unit} of ${fmtInt(cap)}${unit}.`);
+    } else if (before[key] < cap * warnAt && after[key] >= cap * warnAt && after[key] < cap && !warnedThisSession.has(warnKey)) {
+      warnedThisSession.add(warnKey);
+      toast('warn', '⚠️', `**Heads up** — ${label.toLowerCase()} is at ${Math.round(after[key]/cap*100)}% of your cap (${fmtInt(after[key])} of ${fmtInt(cap)}${unit}).`);
+    }
+  });
+}
+
+/* the rest of the app (rendering, charts, events) is appended below */
+/* ================= rendering: today ================= */
+function ringSVG(pct, colorVar, trackVar, over) {
+  const r = 38, c = 2 * Math.PI * r, size = 92;
+  const capped = Math.min(pct, 1);
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', size); svg.setAttribute('height', size);
+  svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+  const mk = (stroke, dash, off) => {
+    const circ = document.createElementNS(svgNS, 'circle');
+    circ.setAttribute('cx', size/2); circ.setAttribute('cy', size/2); circ.setAttribute('r', r);
+    circ.setAttribute('fill', 'none'); circ.setAttribute('stroke', stroke);
+    circ.setAttribute('stroke-width', 9); circ.setAttribute('stroke-linecap', 'round');
+    if (dash !== undefined) { circ.setAttribute('stroke-dasharray', dash); circ.setAttribute('stroke-dashoffset', off); }
+    return circ;
+  };
+  svg.append(mk(`var(${trackVar})`));
+  if (capped > 0.001) svg.append(mk(over ? 'var(--critical)' : `var(${colorVar})`, `${c * capped} ${c}`, 0));
+  return svg;
+}
+function renderRing(elId, label, colorVar, trackVar, value, goal, unit, isCap) {
+  const card = document.getElementById(elId);
+  clearNode(card);
+  const pct = goal ? value / goal : 0;
+  const over = isCap && pct > 1;
+  const wrap = el('div', 'ring-wrap');
+  wrap.append(ringSVG(pct, colorVar, trackVar, over));
+  const center = el('div', 'ring-center');
+  const pctEl = el('div', 'pct', Math.round(pct * 100) + '%');
+  if (over) pctEl.style.color = 'var(--critical)';
+  center.append(pctEl);
+  wrap.append(center);
+  const meta = el('div', 'ring-meta');
+  const lab = el('div', 'label');
+  const key = el('span', 'key'); key.style.background = `var(${colorVar})`;
+  lab.append(key, document.createTextNode(label));
+  const val = el('div', 'val');
+  val.append(document.createTextNode(fmtInt(value)), Object.assign(el('span', 'of'), { textContent: ` / ${fmtInt(goal)} ${unit}` }));
+  const left = el('div', 'left');
+  const remaining = goal - value;
+  if (isCap) {
+    if (over) { left.textContent = fmtInt(value - goal) + ' ' + unit + ' over'; left.style.color = 'var(--critical)'; left.style.fontWeight = '600'; }
+    else left.textContent = fmtInt(remaining) + ' ' + unit + ' left';
+  } else {
+    if (remaining <= 0) { left.textContent = 'Goal hit ✓'; left.classList.add('hit'); }
+    else left.textContent = fmtInt(remaining) + ' ' + unit + ' to go';
+  }
+  meta.append(lab, val, left);
+  card.append(wrap, meta);
+}
+function renderMeter(elId, label, value, cap, unit) {
+  const card = document.getElementById(elId);
+  clearNode(card);
+  const pct = cap ? value / cap : 0;
+  let fillColor = 'var(--protein)', note = 'comfortable', noteIcon = '';
+  if (pct >= 1) { fillColor = 'var(--critical)'; note = 'over the cap'; noteIcon = '🛑'; }
+  else if (pct >= 0.8) { fillColor = 'var(--warning)'; note = 'getting close'; noteIcon = '⚠️'; }
+  const head = el('div', 'm-head');
+  head.append(el('span', 'm-label', label));
+  const v = el('span', 'm-val');
+  v.append(document.createTextNode(fmtInt(value)), Object.assign(el('span', 'of'), { textContent: ` / ${fmtInt(cap)} ${unit}` }));
+  head.append(v);
+  const track = el('div', 'track');
+  const fill = el('div', 'fill');
+  fill.style.width = Math.min(pct * 100, 100) + '%';
+  fill.style.background = fillColor;
+  if (pct >= 1) fill.style.borderRadius = '5px';
+  track.append(fill);
+  const noteEl = el('div', 'm-note', (noteIcon ? noteIcon + ' ' : '') + note);
+  if (pct >= 1) { noteEl.style.color = 'var(--critical)'; noteEl.style.fontWeight = '600'; }
+  else if (pct >= 0.8) { noteEl.style.fontWeight = '600'; }
+  card.append(head, track, noteEl);
+}
+
+function renderDate() {
+  const label = document.getElementById('dateLabel');
+  const d = isoToDate(selectedDate);
+  const wd = d.toLocaleDateString('en-US', { weekday: 'short' });
+  const md = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  clearNode(label);
+  label.append(Object.assign(el('span', 'weekday'), { textContent: wd + ' · ' }), document.createTextNode(selectedDate === todayISO() ? 'Today, ' + md : md));
+}
+
+function renderStreaks() {
+  const box = document.getElementById('streakChips');
+  clearNode(box);
+  [['fiber', 'Fiber', '--fiber'], ['protein', 'Protein', '--protein']].forEach(([key, label, colorVar]) => {
+    const s = streak(key);
+    if (s.count < 1) return;
+    const chip = el('span', 'streak-chip');
+    const dot = el('span', 'dot'); dot.style.background = `var(${colorVar})`;
+    chip.append(dot, document.createTextNode(`${label} 🔥 ${s.count} day${s.count > 1 ? 's' : ''}`));
+    chip.title = s.includesToday ? 'Includes today' : 'Through yesterday — keep it going today';
+    box.append(chip);
+  });
+}
+
+const MEALS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+function renderLog() {
+  const box = document.getElementById('logList');
+  clearNode(box);
+  const entries = data.log[selectedDate] || [];
+  if (!entries.length) {
+    box.append(el('div', 'empty-note', 'Nothing logged yet. Weigh it, search it, add it.'));
+  } else {
+    MEALS.forEach(meal => {
+      const items = entries.map((e, i) => [e, i]).filter(([e]) => e.meal === meal);
+      if (!items.length) return;
+      const group = el('div', 'meal-group');
+      const head = el('div', 'm-title');
+      head.style.cssText = 'display:flex;align-items:center;gap:10px';
+      head.append(document.createTextNode(meal));
+      const saveBtn = el('button', 'chip', '＋ save as meal');
+      saveBtn.style.cssText = 'font-size:11px;padding:2px 9px;text-transform:none;letter-spacing:0';
+      const nameWrap2 = el('span');
+      saveBtn.addEventListener('click', () => {
+        saveBtn.style.display = 'none';
+        const inp = el('input');
+        inp.type = 'text'; inp.placeholder = 'Name this meal…';
+        inp.style.cssText = 'font-family:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--border);border-radius:7px;background:var(--page);color:var(--text-primary);outline:none';
+        const ok = el('button', 'chip', 'Save');
+        ok.style.cssText = 'font-size:11px;padding:2px 9px;text-transform:none;letter-spacing:0';
+        ok.addEventListener('click', () => {
+          const name = inp.value.trim();
+          if (!name) { inp.focus(); return; }
+          const groupItems = (data.log[selectedDate] || []).filter(e => e.meal === meal && foodById(e.f));
+          if (!data.meals) data.meals = [];
+          data.meals.push({
+            id: 'meal-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36),
+            name,
+            items: groupItems.map(e => ({ f: e.f, g: e.g }))
+          });
+          markDirty();
+          toast('info', '🍳', `**${name}** saved — log it with one tap from search or the Meals chips.`);
+          renderAll();
+        });
+        inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') ok.click(); });
+        nameWrap2.append(inp, document.createTextNode(' '), ok);
+        head.append(nameWrap2);
+        inp.focus();
+      });
+      head.append(saveBtn);
+      group.append(head);
+      items.forEach(([entry, idx]) => {
+        const f = foodById(entry.f);
+        const n = entryNutrients(entry);
+        const row = el('div', 'entry');
+        const nameWrap = el('div');
+        const nm = el('span', 'e-name', f ? f.name : '(deleted food)');
+        const gr = el('span', 'e-grams', ' · ' + fmt(entry.g, entry.g % 1 ? 1 : 0) + 'g');
+        nameWrap.append(nm, gr);
+        const macros = el('span', 'e-macros',
+          `${fmtInt(n.cal)} kcal · P ${fmt(n.protein,1)} · Fib ${fmt(n.fiber,1)}`);
+        const del = el('button', 'e-del', '✕');
+        del.title = 'Remove';
+        del.addEventListener('click', () => {
+          data.log[selectedDate].splice(idx, 1);
+          markDirty(); renderAll();
+        });
+        row.append(nameWrap, macros, del);
+        group.append(row);
+      });
+      box.append(group);
+    });
+  }
+  const t = dayTotals(selectedDate);
+  const totals = document.getElementById('dayTotals');
+  clearNode(totals);
+  [['Calories', fmtInt(t.cal) + ' kcal'], ['Protein', fmt(t.protein,1) + 'g'], ['Fiber', fmt(t.fiber,1) + 'g'],
+   ['Carbs', fmt(t.carbs,0) + 'g'], ['Fat', fmt(t.fat,0) + 'g'], ['Sat fat', fmt(t.satfat,1) + 'g'],
+   ['Added sugar', fmt(t.addedsugar,1) + 'g'], ['Sodium', fmtInt(t.sodium) + 'mg']].forEach(([k, v]) => {
+    const s = el('span');
+    s.append(document.createTextNode(k + ' '), Object.assign(el('b'), { textContent: v }));
+    totals.append(s);
+  });
+}
+
+function renderStrip() {
+  const strip = document.getElementById('statusStrip');
+  clearNode(strip);
+  const t = dayTotals(selectedDate);
+  const g = data.goals;
+  const seg = (colorVar, label, remaining, unit, hit, hitText) => {
+    const s = el('span', 's-seg' + (hit ? ' hit' : ''));
+    const d = el('span', 'dot'); d.style.background = `var(${colorVar})`;
+    s.append(d, document.createTextNode(label + ' '));
+    const b = el('b');
+    b.textContent = hit ? hitText : fmtInt(remaining) + unit;
+    s.append(b);
+    if (!hit) s.append(document.createTextNode(' left'));
+    return s;
+  };
+  strip.append(
+    seg('--cal', 'Cal', g.calories - t.cal, '', t.cal >= g.calories, fmtInt(t.cal - g.calories) + ' over'),
+    seg('--protein', 'Protein', g.protein - t.protein, 'g', t.protein >= g.protein, 'goal hit ✓'),
+    seg('--fiber', 'Fiber', g.fiber - t.fiber, 'g', t.fiber >= g.fiber, 'goal hit ✓')
+  );
+  // cap chips only when they need attention
+  [['sodium', g.sodium, 'sodium'], ['satfat', g.satfat, 'sat fat'], ['addedsugar', g.addedsugar, 'added sugar']].forEach(([key, cap, label]) => {
+    if (!cap) return;
+    const pct = t[key] / cap;
+    if (pct >= 1) strip.append(Object.assign(el('span', 's-warn w100'), { textContent: '🛑 ' + label + ' over' }));
+    else if (pct >= 0.8) strip.append(Object.assign(el('span', 's-warn w80'), { textContent: '⚠️ ' + label + ' ' + Math.round(pct * 100) + '%' }));
+  });
+}
+function renderToday() {
+  renderDate();
+  renderStrip();
+  const t = dayTotals(selectedDate);
+  const g = data.goals;
+  renderRing('ringCal', 'Calories', '--cal', '--cal-track', t.cal, g.calories, 'kcal', true);
+  renderRing('ringProtein', 'Protein', '--protein', '--protein-track', t.protein, g.protein, 'g', false);
+  renderRing('ringFiber', 'Fiber', '--fiber', '--fiber-track', t.fiber, g.fiber, 'g', false);
+  renderMeter('meterSodium', 'Sodium', t.sodium, g.sodium, 'mg');
+  renderMeter('meterSatfat', 'Saturated fat', t.satfat, g.satfat, 'g');
+  renderMeter('meterSugar', 'Added sugar', t.addedsugar, g.addedsugar, 'g');
+  renderLog();
+  renderStreaks();
+  renderRecent();
+}
+
+/* ================= search & add ================= */
+let suggestIndex = -1;
+let suggestItems = [];
+function searchFoods(q) {
+  q = q.trim().toLowerCase();
+  if (!q) return [];
+  const terms = q.split(/\s+/);
+  return data.foods
+    .map(f => {
+      const hay = (f.name + ' ' + (f.brand || '')).toLowerCase();
+      const ok = terms.every(t => hay.includes(t));
+      if (!ok) return null;
+      return { f, rank: hay.indexOf(terms[0]) };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, 9)
+    .map(x => x.f);
+}
+function searchMeals(q) {
+  q = q.trim().toLowerCase();
+  if (!q) return [];
+  return (data.meals || []).filter(m => m.name.toLowerCase().includes(q)).slice(0, 4);
+}
+function renderSuggest(foods, meals) {
+  const box = document.getElementById('suggestBox');
+  clearNode(box);
+  meals = meals || [];
+  suggestItems = [...meals.map(m => ({ meal: m })), ...foods.map(f => ({ food: f }))];
+  suggestIndex = -1;
+  if (!suggestItems.length) { box.classList.remove('open'); return; }
+  suggestItems.forEach((s, i) => {
+    const item = el('div', 's-item');
+    item.dataset.i = i;
+    const left = el('span');
+    if (s.meal) {
+      const t = mealNutrients(s.meal, 1);
+      left.append(Object.assign(el('span', 's-name'), { textContent: '🍳 ' + s.meal.name }));
+      left.append(document.createTextNode(' '), Object.assign(el('span', 's-brand'), { textContent: 'saved meal · ' + s.meal.items.length + ' ingredients' }));
+      item.append(left, el('span', 's-per', `${fmtInt(t.cal)} kcal · P${fmt(t.protein,0)} · Fib${fmt(t.fiber,0)}`));
+      item.addEventListener('click', () => pickMeal(s.meal));
+    } else {
+      const f = s.food;
+      left.append(Object.assign(el('span', 's-name'), { textContent: f.name }));
+      if (f.brand) left.append(document.createTextNode(' '), Object.assign(el('span', 's-brand'), { textContent: f.brand }));
+      item.append(left, el('span', 's-per', `${fmtInt(f.per100.cal)} kcal · P${fmt(f.per100.protein,0)} · Fib${fmt(f.per100.fiber,0)} /100g`));
+      item.addEventListener('click', () => pickFood(f));
+    }
+    box.append(item);
+  });
+  box.classList.add('open');
+}
+function pickMeal(meal) {
+  pickedMeal = meal;
+  picked = null;
+  document.getElementById('suggestBox').classList.remove('open');
+  const search = document.getElementById('foodSearch');
+  search.value = meal.name;
+  const grams = document.getElementById('gramsInput');
+  grams.value = 1;
+  grams.placeholder = '× servings';
+  const box = document.getElementById('pickedBox');
+  clearNode(box);
+  const t = mealNutrients(meal, 1);
+  const line = el('div');
+  line.append(Object.assign(el('span', 'p-name'), { textContent: '🍳 ' + meal.name }),
+    document.createTextNode(`  ·  ${fmtInt(t.cal)} kcal, ${fmt(t.protein,1)}g protein, ${fmt(t.fiber,1)}g fiber per serving`));
+  box.append(line);
+  const ing = el('div');
+  ing.style.cssText = 'margin-top:6px;font-size:12px;color:var(--text-muted);line-height:1.6';
+  ing.textContent = meal.items.map(it => {
+    const f = foodById(it.f);
+    return (f ? f.name : '?') + ' ' + fmt(it.g, it.g % 1 ? 1 : 0) + 'g';
+  }).join('  ·  ');
+  box.append(ing);
+  const chips = el('div', 'serv-chips');
+  [['× ½', 0.5], ['× 1', 1], ['× 1½', 1.5]].forEach(([label, mult]) => {
+    const c = el('button', 'chip', label);
+    c.addEventListener('click', () => { grams.value = mult; updateAddState(); updatePreview(); });
+    chips.append(c);
+  });
+  box.append(chips);
+  box.classList.add('show');
+  updateAddState();
+  updatePreview();
+}
+function pickFood(f) {
+  picked = f;
+  pickedMeal = null;
+  document.getElementById('gramsInput').placeholder = 'grams';
+  document.getElementById('suggestBox').classList.remove('open');
+  const search = document.getElementById('foodSearch');
+  search.value = f.name + (f.brand ? ' — ' + f.brand : '');
+  const box = document.getElementById('pickedBox');
+  clearNode(box);
+  const line = el('div');
+  line.append(Object.assign(el('span', 'p-name'), { textContent: f.name }),
+    document.createTextNode(`  ·  per 100g: ${fmtInt(f.per100.cal)} kcal, ${fmt(f.per100.protein,1)}g protein, ${fmt(f.per100.fiber,1)}g fiber`));
+  box.append(line);
+  if (f.servings && f.servings.length) {
+    const chips = el('div', 'serv-chips');
+    f.servings.forEach(([label, grams]) => {
+      const c = el('button', 'chip', label);
+      c.addEventListener('click', () => {
+        document.getElementById('gramsInput').value = grams;
+        updateAddState();
+        updatePreview();
+      });
+      chips.append(c);
+    });
+    box.append(chips);
+  }
+  box.classList.add('show');
+  document.getElementById('gramsInput').focus();
+  updateAddState();
+  updatePreview();
+}
+function updateAddState() {
+  const g = parseFloat(document.getElementById('gramsInput').value);
+  document.getElementById('addBtn').disabled = !((picked || pickedMeal) && g > 0);
+}
+function updatePreview() {
+  const line = document.getElementById('previewLine');
+  const g = parseFloat(document.getElementById('gramsInput').value);
+  if (pickedMeal && g > 0) {
+    const t = mealNutrients(pickedMeal, g);
+    line.textContent = `× ${g} = ${fmtInt(t.cal)} kcal · ${fmt(t.protein,1)}g protein · ${fmt(t.fiber,1)}g fiber · ${fmt(t.satfat,1)}g sat fat · ${fmtInt(t.sodium)}mg sodium`;
+    line.classList.add('show');
+    return;
+  }
+  if (!(picked && g > 0)) { line.classList.remove('show'); return; }
+  const k = g / 100, p = picked.per100;
+  line.textContent = `${fmt(g, g % 1 ? 1 : 0)}g = ${fmtInt(p.cal*k)} kcal · ${fmt(p.protein*k,1)}g protein · ${fmt(p.fiber*k,1)}g fiber · ${fmt(p.satfat*k,1)}g sat fat · ${fmtInt(p.sodium*k)}mg sodium`;
+  line.classList.add('show');
+}
+function defaultMeal() {
+  const h = new Date().getHours();
+  if (h < 10.5) return 'Breakfast';
+  if (h < 14.5) return 'Lunch';
+  if (h < 17) return 'Snack';
+  return 'Dinner';
+}
+function addEntry() {
+  const g = parseFloat(document.getElementById('gramsInput').value);
+  if (!((picked || pickedMeal) && g > 0)) return;
+  const before = dayTotals(selectedDate);
+  if (!data.log[selectedDate]) data.log[selectedDate] = [];
+  const mealSlot = document.getElementById('mealSelect').value;
+  if (pickedMeal) {
+    pickedMeal.items.forEach(item => {
+      if (foodById(item.f)) data.log[selectedDate].push({ f: item.f, g: item.g * g, meal: mealSlot, t: Date.now() });
+    });
+  } else {
+    data.log[selectedDate].push({ f: picked.id, g, meal: mealSlot, t: Date.now() });
+  }
+  const after = dayTotals(selectedDate);
+  markDirty();
+  checkMilestones(before, after);
+  // reset input row
+  picked = null;
+  pickedMeal = null;
+  document.getElementById('foodSearch').value = '';
+  document.getElementById('gramsInput').value = '';
+  document.getElementById('gramsInput').placeholder = 'grams';
+  document.getElementById('pickedBox').classList.remove('show');
+  document.getElementById('previewLine').classList.remove('show');
+  updateAddState();
+  renderAll();
+  document.getElementById('foodSearch').focus();
+}
+function recentFoodIds() {
+  const seen = [];
+  const dates = Object.keys(data.log).sort().reverse().slice(0, 14);
+  dates.forEach(d => {
+    [...data.log[d]].reverse().forEach(e => {
+      if (!seen.includes(e.f) && foodById(e.f)) seen.push(e.f);
+    });
+  });
+  return seen.slice(0, 6);
+}
+function renderRecent() {
+  const box = document.getElementById('recentChips');
+  clearNode(box);
+  const meals = (data.meals || []).slice(0, 6);
+  if (meals.length) {
+    const label = el('span', null, 'Meals: ');
+    label.style.cssText = 'font-size:12.5px;color:var(--text-muted);align-self:center';
+    box.append(label);
+    meals.forEach(m => {
+      const c = el('button', 'chip', '🍳 ' + m.name);
+      c.addEventListener('click', () => pickMeal(m));
+      box.append(c);
+    });
+  }
+  const ids = recentFoodIds();
+  if (!ids.length) return;
+  const label2 = el('span', null, meals.length ? ' · Recent: ' : 'Recent: ');
+  label2.style.cssText = 'font-size:12.5px;color:var(--text-muted);align-self:center';
+  box.append(label2);
+  ids.forEach(id => {
+    const f = foodById(id);
+    const c = el('button', 'chip', f.name);
+    c.addEventListener('click', () => pickFood(f));
+    box.append(c);
+  });
+}
+/* ================= trends ================= */
+function lastNDates(n) {
+  const out = [];
+  let iso = todayISO();
+  for (let i = 0; i < n; i++) { out.unshift(iso); iso = shiftISO(iso, -1); }
+  return out;
+}
+function barTopPath(x, y, w, h, r) {
+  if (h <= 0.5) return '';
+  r = Math.min(r, w / 2, h);
+  return `M${x},${y + h} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + w - r},${y} Q${x + w},${y} ${x + w},${y + r} L${x + w},${y + h} Z`;
+}
+function columnChart(containerId, subId, opts) {
+  // opts: {values:[{iso,v}], goal, colorVar, unit, capMode, label}
+  const box = document.getElementById(containerId);
+  clearNode(box);
+  const W = Math.max(box.clientWidth || 900, 320), H = 190;
+  const padL = 44, padR = 12, padT = 14, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const vals = opts.values;
+  const maxRaw = Math.max(opts.goal * 1.15, ...vals.map(d => d.v), 1);
+  const niceMax = niceCeil(maxRaw);
+  const y = v => padT + plotH - (v / niceMax) * plotH;
+  const band = plotW / vals.length;
+  const barW = Math.min(24, band * 0.62);
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.display = 'block';
+
+  // gridlines: 3 clean steps + baseline
+  const steps = 3;
+  for (let i = 1; i <= steps; i++) {
+    const val = niceMax / steps * i;
+    const gy = y(val);
+    const line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', padL); line.setAttribute('x2', W - padR);
+    line.setAttribute('y1', gy); line.setAttribute('y2', gy);
+    line.setAttribute('stroke', 'var(--grid)'); line.setAttribute('stroke-width', 1);
+    svg.append(line);
+    const tick = document.createElementNS(svgNS, 'text');
+    tick.setAttribute('x', padL - 7); tick.setAttribute('y', gy + 3.5);
+    tick.setAttribute('text-anchor', 'end');
+    tick.setAttribute('font-size', '10.5');
+    tick.setAttribute('font-variant-numeric', 'tabular-nums');
+    tick.setAttribute('fill', 'var(--text-muted)');
+    tick.textContent = fmtInt(val);
+    svg.append(tick);
+  }
+  // baseline
+  const base = document.createElementNS(svgNS, 'line');
+  base.setAttribute('x1', padL); base.setAttribute('x2', W - padR);
+  base.setAttribute('y1', y(0)); base.setAttribute('y2', y(0));
+  base.setAttribute('stroke', 'var(--baseline)'); base.setAttribute('stroke-width', 1);
+  svg.append(base);
+
+  // goal line (hairline in baseline ink + label, not a data color)
+  const gy = y(opts.goal);
+  const goalLine = document.createElementNS(svgNS, 'line');
+  goalLine.setAttribute('x1', padL); goalLine.setAttribute('x2', W - padR);
+  goalLine.setAttribute('y1', gy); goalLine.setAttribute('y2', gy);
+  goalLine.setAttribute('stroke', 'var(--text-muted)'); goalLine.setAttribute('stroke-width', 1);
+  svg.append(goalLine);
+  const goalLabel = document.createElementNS(svgNS, 'text');
+  goalLabel.setAttribute('x', W - padR); goalLabel.setAttribute('y', gy - 4);
+  goalLabel.setAttribute('text-anchor', 'end'); goalLabel.setAttribute('font-size', '10.5');
+  goalLabel.setAttribute('fill', 'var(--text-muted)');
+  goalLabel.textContent = (opts.capMode ? 'cap ' : 'goal ') + fmtInt(opts.goal);
+  svg.append(goalLabel);
+
+  // bars
+  vals.forEach((d, i) => {
+    const cx = padL + band * i + band / 2;
+    const bx = cx - barW / 2;
+    const bh = Math.max(0, y(0) - y(d.v));
+    if (d.v > 0) {
+      const p = document.createElementNS(svgNS, 'path');
+      p.setAttribute('d', barTopPath(bx, y(d.v), barW, bh, 4));
+      const hit = opts.capMode ? d.v <= opts.goal : d.v >= opts.goal;
+      p.setAttribute('fill', d.hasLog === false ? 'var(--wash)' : `var(${opts.colorVar})`);
+      if (!hit && d.hasLog) p.setAttribute('fill-opacity', '0.38');
+      svg.append(p);
+    }
+    // x labels: every other day
+    if (i % 2 === (vals.length - 1) % 2) {
+      const t = document.createElementNS(svgNS, 'text');
+      t.setAttribute('x', cx); t.setAttribute('y', H - 8);
+      t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-size', '10.5');
+      t.setAttribute('fill', 'var(--text-muted)');
+      const dd = isoToDate(d.iso);
+      t.textContent = (dd.getMonth() + 1) + '/' + dd.getDate();
+      svg.append(t);
+    }
+    // hover hit target: full column band
+    const hitRect = document.createElementNS(svgNS, 'rect');
+    hitRect.setAttribute('x', padL + band * i); hitRect.setAttribute('y', padT);
+    hitRect.setAttribute('width', band); hitRect.setAttribute('height', plotH);
+    hitRect.setAttribute('fill', 'transparent');
+    hitRect.addEventListener('pointerenter', ev => showTip(box, svg, d, opts, cx / W, y(Math.min(d.v, niceMax)) / H));
+    hitRect.addEventListener('pointerleave', () => hideTip(box));
+    svg.append(hitRect);
+  });
+
+  box.append(svg);
+
+  // sub line
+  const sub = document.getElementById(subId);
+  if (sub) {
+    const withLog = vals.filter(v => v.hasLog);
+    const hitDays = withLog.filter(v => opts.capMode ? v.v <= opts.goal : v.v >= opts.goal).length;
+    sub.textContent = withLog.length
+      ? `${hitDays} of ${withLog.length} logged days ${opts.capMode ? 'under the cap' : 'hit the goal'}`
+      : 'No days logged yet';
+  }
+}
+function niceCeil(v) {
+  const mag = Math.pow(10, Math.floor(Math.log10(v)));
+  const norm = v / mag;
+  const nice = norm <= 1 ? 1 : norm <= 1.5 ? 1.5 : norm <= 2 ? 2 : norm <= 3 ? 3 : norm <= 4 ? 4 : norm <= 6 ? 6 : norm <= 8 ? 8 : 10;
+  return nice * mag;
+}
+function showTip(box, svg, d, opts, fx, fy) {
+  let tip = box.querySelector('.viz-tip');
+  if (!tip) { tip = el('div', 'viz-tip'); box.append(tip); }
+  clearNode(tip);
+  const dd = isoToDate(d.iso);
+  tip.append(el('div', 'tt-date', dd.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })));
+  const row = el('div', 'tt-row');
+  const key = el('span', 'tt-key'); key.style.background = `var(${opts.colorVar})`;
+  row.append(key, Object.assign(el('span', 'tt-val'), { textContent: d.hasLog ? fmtInt(d.v) + ' ' + opts.unit : 'not logged' }),
+    Object.assign(el('span', 'tt-name'), { textContent: opts.label }));
+  tip.append(row);
+  if (d.hasLog) {
+    const delta = d.v - opts.goal;
+    const rel = el('div');
+    rel.style.cssText = 'font-size:11.5px;margin-top:2px;color:var(--text-muted)';
+    if (opts.capMode) rel.textContent = delta > 0 ? fmtInt(delta) + ' over cap' : fmtInt(-delta) + ' under cap';
+    else rel.textContent = delta >= 0 ? 'goal hit ✓' : fmtInt(-delta) + ' ' + opts.unit + ' short';
+    tip.append(rel);
+  }
+  tip.style.display = 'block';
+  const bw = box.clientWidth, tw = tip.offsetWidth;
+  let left = fx * bw - tw / 2;
+  left = Math.max(4, Math.min(left, bw - tw - 4));
+  tip.style.left = left + 'px';
+  tip.style.top = Math.max(0, fy * 190 - tip.offsetHeight - 10) + 'px';
+}
+function hideTip(box) {
+  const tip = box.querySelector('.viz-tip');
+  if (tip) tip.style.display = 'none';
+}
+
+function renderTrends() {
+  const dates = lastNDates(14);
+  const series = dates.map(iso => ({ iso, totals: dayTotals(iso), hasLog: hasEntries(iso) }));
+  const g = data.goals;
+
+  columnChart('fiberChart', 'fiberChartSub', {
+    values: series.map(s => ({ iso: s.iso, v: s.totals.fiber, hasLog: s.hasLog })),
+    goal: g.fiber, colorVar: '--fiber', unit: 'g', capMode: false, label: 'Fiber'
+  });
+  columnChart('proteinChart', 'proteinChartSub', {
+    values: series.map(s => ({ iso: s.iso, v: s.totals.protein, hasLog: s.hasLog })),
+    goal: g.protein, colorVar: '--protein', unit: 'g', capMode: false, label: 'Protein'
+  });
+  columnChart('calChart', 'calChartSub', {
+    values: series.map(s => ({ iso: s.iso, v: s.totals.cal, hasLog: s.hasLog })),
+    goal: g.calories, colorVar: '--cal', unit: 'kcal', capMode: true, label: 'Calories'
+  });
+
+  // 7-day tiles
+  const last7 = series.slice(-7).filter(s => s.hasLog);
+  const avg = key => last7.length ? last7.reduce((a, s) => a + s.totals[key], 0) / last7.length : 0;
+  const goalDays = last7.filter(s => s.totals.fiber >= g.fiber && s.totals.protein >= g.protein).length;
+  const tiles = document.getElementById('trendTiles');
+  clearNode(tiles);
+  [
+    ['Avg calories (7d)', fmtInt(avg('cal')), 'kcal', `target ${fmtInt(g.calories)}`],
+    ['Avg protein (7d)', fmt(avg('protein'), 0), 'g', `goal ${fmtInt(g.protein)}g`],
+    ['Avg fiber (7d)', fmt(avg('fiber'), 0), 'g', `goal ${fmtInt(g.fiber)}g`],
+    ['Double-goal days (7d)', String(goalDays), `of ${last7.length}`, 'protein + fiber both hit'],
+  ].forEach(([label, value, unit, sub]) => {
+    const tile = el('div', 'card tile');
+    tile.append(el('div', 't-label', label));
+    const v = el('div', 't-value');
+    v.append(document.createTextNode(value), document.createTextNode(' '), Object.assign(el('span', 'unit'), { textContent: unit }));
+    tile.append(v, el('div', 't-sub', sub));
+    tiles.append(tile);
+  });
+}
+
+/* ================= foods tab ================= */
+function renderMealsList() {
+  const box = document.getElementById('mealsList');
+  clearNode(box);
+  const meals = data.meals || [];
+  if (!meals.length) {
+    box.append(el('div', 'empty-note', 'No saved meals yet.'));
+    return;
+  }
+  meals.forEach(m => {
+    const t = mealNutrients(m, 1);
+    const row = el('div', 'entry');
+    const nameWrap = el('div');
+    nameWrap.append(Object.assign(el('span', 'e-name'), { textContent: '🍳 ' + m.name }));
+    const ing = el('div');
+    ing.style.cssText = 'font-size:12px;color:var(--text-muted)';
+    ing.textContent = m.items.map(it => {
+      const f = foodById(it.f);
+      return (f ? f.name : '?') + ' ' + fmt(it.g, it.g % 1 ? 1 : 0) + 'g';
+    }).join(' · ');
+    nameWrap.append(ing);
+    const macros = el('span', 'e-macros', `${fmtInt(t.cal)} kcal · P ${fmt(t.protein,1)} · Fib ${fmt(t.fiber,1)}`);
+    const del = el('button', 'e-del', '✕');
+    del.title = 'Delete meal';
+    del.addEventListener('click', () => {
+      data.meals = data.meals.filter(x => x.id !== m.id);
+      markDirty(); renderMealsList(); renderRecent();
+    });
+    row.append(nameWrap, macros, del);
+    box.append(row);
+  });
+}
+function renderFoodsTable() {
+  const tbody = document.getElementById('foodsTbody');
+  clearNode(tbody);
+  const q = document.getElementById('foodsFilter').value.trim().toLowerCase();
+  const list = data.foods.filter(f => !q || (f.name + ' ' + (f.brand || '')).toLowerCase().includes(q));
+  document.getElementById('foodCount').textContent = `· ${data.foods.length} foods`;
+  list.forEach(f => {
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    nameTd.append(Object.assign(el('div', 'f-name'), { textContent: f.name }));
+    if (f.brand) nameTd.append(Object.assign(el('div', 'f-brand'), { textContent: f.brand }));
+    tr.append(nameTd);
+    const p = f.per100;
+    [fmtInt(p.cal), fmt(p.protein,1), fmt(p.carbs,1), fmt(p.fiber,1), fmt(p.fat,1), fmt(p.satfat,1), fmt(p.sugar,1), fmt(p.addedsugar,1), fmtInt(p.sodium)].forEach(v => {
+      const td = document.createElement('td'); td.textContent = v; tr.append(td);
+    });
+    const actTd = document.createElement('td');
+    if (f.custom) {
+      const del = el('button', 'e-del', '✕');
+      del.title = 'Delete food';
+      del.addEventListener('click', () => {
+        data.foods = data.foods.filter(x => x.id !== f.id);
+        markDirty(); renderFoodsTable();
+      });
+      actTd.append(del);
+    }
+    tr.append(actTd);
+    tbody.append(tr);
+  });
+}
+function saveNewFood() {
+  const name = document.getElementById('nf-name').value.trim();
+  const brand = document.getElementById('nf-brand').value.trim();
+  const sg = parseFloat(document.getElementById('nf-sg').value);
+  const msg = document.getElementById('foodFormMsg');
+  if (!name || !(sg > 0)) {
+    msg.textContent = 'Need at least a name and the serving weight in grams.';
+    msg.classList.add('dirty');
+    return;
+  }
+  const get = id => parseFloat(document.getElementById(id).value) || 0;
+  const k = 100 / sg;
+  const per100 = N(
+    +(get('nf-cal') * k).toFixed(1), +(get('nf-p') * k).toFixed(1), +(get('nf-c') * k).toFixed(1),
+    +(get('nf-fib') * k).toFixed(1), +(get('nf-f') * k).toFixed(1), +(get('nf-sf') * k).toFixed(1),
+    +(get('nf-sug') * k).toFixed(1), +(get('nf-asug') * k).toFixed(1), +(get('nf-na') * k).toFixed(1)
+  );
+  const id = 'custom-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+  data.foods.push({ id, name, brand: brand || undefined, per100, servings: [[`1 serving (${sg}g)`, sg]], custom: true });
+  markDirty();
+  ['nf-name','nf-brand','nf-sg','nf-cal','nf-p','nf-c','nf-fib','nf-f','nf-sf','nf-sug','nf-asug','nf-na'].forEach(i => document.getElementById(i).value = '');
+  msg.textContent = `Saved “${name}” ✓`;
+  msg.classList.remove('dirty');
+  renderFoodsTable();
+}
+
+/* ================= settings ================= */
+function renderSettings() {
+  const g = data.goals;
+  document.getElementById('g-cal').value = g.calories;
+  document.getElementById('g-protein').value = g.protein;
+  document.getElementById('g-fiber').value = g.fiber;
+  document.getElementById('g-carbs').value = g.carbs;
+  document.getElementById('g-fat').value = g.fat;
+  document.getElementById('g-sodium').value = g.sodium;
+  document.getElementById('g-satfat').value = g.satfat;
+  document.getElementById('g-asug').value = g.addedsugar;
+}
+function saveGoals() {
+  const get = id => parseFloat(document.getElementById(id).value) || 0;
+  data.goals = {
+    calories: get('g-cal'), protein: get('g-protein'), fiber: get('g-fiber'),
+    carbs: get('g-carbs'), fat: get('g-fat'),
+    sodium: get('g-sodium'), satfat: get('g-satfat'), addedsugar: get('g-asug')
+  };
+  markDirty();
+  document.getElementById('goalsMsg').textContent = 'Saved ✓';
+  setTimeout(() => document.getElementById('goalsMsg').textContent = '', 2500);
+  renderAll();
+}
+
+/* ================= shell ================= */
+function renderAll() {
+  renderToday();
+  renderTrends();
+  renderFoodsTable();
+  renderMealsList();
+  updateSaveState();
+}
+function switchTab(name) {
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  ['today','trends','foods','settings'].forEach(t => document.getElementById('tab-' + t).classList.toggle('hidden', t !== name));
+  if (name === 'trends') renderTrends();
+}
+
+/* ================= events & init ================= */
+function init() {
+  document.getElementById('tabs').addEventListener('click', e => {
+    if (e.target.dataset.tab) switchTab(e.target.dataset.tab);
+  });
+  document.getElementById('prevDay').addEventListener('click', () => { selectedDate = shiftISO(selectedDate, -1); renderToday(); });
+  document.getElementById('nextDay').addEventListener('click', () => { selectedDate = shiftISO(selectedDate, 1); renderToday(); });
+  document.getElementById('jumpToday').addEventListener('click', () => { selectedDate = todayISO(); renderToday(); });
+
+  const search = document.getElementById('foodSearch');
+  search.addEventListener('input', () => {
+    picked = null;
+    updateAddState();
+    document.getElementById('pickedBox').classList.remove('show');
+    document.getElementById('previewLine').classList.remove('show');
+    renderSuggest(searchFoods(search.value), searchMeals(search.value));
+  });
+  search.addEventListener('keydown', e => {
+    const box = document.getElementById('suggestBox');
+    if (!box.classList.contains('open')) return;
+    const items = box.querySelectorAll('.s-item');
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      suggestIndex = e.key === 'ArrowDown'
+        ? Math.min(suggestIndex + 1, items.length - 1)
+        : Math.max(suggestIndex - 1, 0);
+      items.forEach((it, i) => it.classList.toggle('sel', i === suggestIndex));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const idx = suggestIndex >= 0 ? suggestIndex : 0;
+      if (suggestItems[idx]) pickFood(suggestItems[idx]);
+    } else if (e.key === 'Escape') {
+      box.classList.remove('open');
+    }
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.addrow')) document.getElementById('suggestBox').classList.remove('open');
+  });
+  const grams = document.getElementById('gramsInput');
+  grams.addEventListener('input', () => { updateAddState(); updatePreview(); });
+  grams.addEventListener('keydown', e => { if (e.key === 'Enter' && !document.getElementById('addBtn').disabled) addEntry(); });
+  document.getElementById('addBtn').addEventListener('click', addEntry);
+  document.getElementById('mealSelect').value = defaultMeal();
+
+  document.getElementById('foodsFilter').addEventListener('input', renderFoodsTable);
+  document.getElementById('saveFoodBtn').addEventListener('click', saveNewFood);
+  document.getElementById('saveGoalsBtn').addEventListener('click', saveGoals);
+
+  document.getElementById('connectFileBtn').addEventListener('click', connectFile);
+  document.getElementById('exportBtn').addEventListener('click', exportJSON);
+  document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', e => {
+    if (e.target.files[0]) importJSON(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const effectiveDark = cur === 'dark' || (!cur && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', effectiveDark ? 'light' : 'dark');
+    renderAll();
+  });
+
+  window.addEventListener('beforeunload', e => {
+    if (dirty && !fileHandle) { e.preventDefault(); e.returnValue = ''; }
+  });
+  window.addEventListener('resize', () => { if (!document.getElementById('tab-trends').classList.contains('hidden')) renderTrends(); });
+
+  initLookup();
+
+  // load anything previously saved on this device
+  const stored = deviceStore.load();
+  if (stored) {
+    try { adoptData(stored); deviceSaved = true; } catch (e) { /* corrupt -> defaults */ }
+  }
+
+  // offline support when served over https (Netlify)
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  renderSettings();
+  renderAll();
+}
+document.addEventListener('DOMContentLoaded', init);
+/* ================= barcode scan + Open Food Facts ================= */
+let scannerLibPromise = null;
+let activeScanner = null;
+
+function loadScannerLib() {
+  if (window.Html5Qrcode) return Promise.resolve();
+  if (!scannerLibPromise) {
+    scannerLibPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js';
+      s.onload = resolve;
+      s.onerror = () => { scannerLibPromise = null; reject(new Error('lib')); };
+      document.head.append(s);
+    });
+  }
+  return scannerLibPromise;
+}
+
+async function openScanner() {
+  const msg = document.getElementById('offMsg');
+  msg.textContent = '';
+  try {
+    await loadScannerLib();
+  } catch (e) {
+    msg.textContent = 'Couldn’t load the scanner (no connection?). Try the name search instead.';
+    return;
+  }
+  const overlay = document.getElementById('scanOverlay');
+  overlay.classList.add('open');
+  document.getElementById('scanHint').textContent = 'Point the camera at the UPC barcode…';
+  try {
+    const formats = window.Html5QrcodeSupportedFormats ? [
+      Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E
+    ] : undefined;
+    activeScanner = new Html5Qrcode('scanReader', formats ? { formatsToSupport: formats } : undefined);
+    await activeScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 260, height: 140 } },
+      code => {
+        closeScanner();
+        document.getElementById('offMsg').textContent = 'Looking up ' + code + '…';
+        lookupBarcode(code);
+      },
+      () => {} /* per-frame misses are normal */
+    );
+  } catch (e) {
+    closeScanner();
+    msg.textContent = 'Camera unavailable here. On your phone this needs the https (Netlify) version — or use the name search.';
+  }
+}
+function closeScanner() {
+  const overlay = document.getElementById('scanOverlay');
+  overlay.classList.remove('open');
+  if (activeScanner) {
+    const s = activeScanner;
+    activeScanner = null;
+    s.stop().then(() => s.clear()).catch(() => {});
+  }
+}
+
+function offNum(n, key) { const v = n ? n[key] : undefined; return typeof v === 'number' && isFinite(v) ? v : 0; }
+function mapOFF(p) {
+  const n = p.nutriments || {};
+  let cal = offNum(n, 'energy-kcal_100g');
+  if (!cal && offNum(n, 'energy_100g')) cal = offNum(n, 'energy_100g') / 4.184; // kJ fallback
+  let sodium = offNum(n, 'sodium_100g') * 1000;               // OFF stores grams
+  if (!sodium && offNum(n, 'salt_100g')) sodium = offNum(n, 'salt_100g') / 2.5 * 1000;
+  return {
+    name: (p.product_name || '').trim() || 'Unnamed product',
+    brand: (p.brands || '').split(',')[0].trim(),
+    servingG: parseFloat(p.serving_quantity) || 0,
+    per100: {
+      cal: Math.round(cal * 10) / 10,
+      protein: offNum(n, 'proteins_100g'),
+      carbs: offNum(n, 'carbohydrates_100g'),
+      fiber: offNum(n, 'fiber_100g'),
+      fat: offNum(n, 'fat_100g'),
+      satfat: offNum(n, 'saturated-fat_100g'),
+      sugar: offNum(n, 'sugars_100g'),
+      addedsugar: offNum(n, 'added-sugars_100g'),
+      sodium: Math.round(sodium)
+    }
+  };
+}
+function prefillFromOFF(m) {
+  // fill the manual form as a per-100g "serving" so Ralph reviews before saving
+  document.getElementById('nf-name').value = m.name;
+  document.getElementById('nf-brand').value = m.brand || '';
+  document.getElementById('nf-sg').value = 100;
+  const set = (id, v) => document.getElementById(id).value = v ? +v.toFixed(1) : (v === 0 ? 0 : '');
+  set('nf-cal', m.per100.cal); set('nf-p', m.per100.protein); set('nf-c', m.per100.carbs);
+  set('nf-fib', m.per100.fiber); set('nf-f', m.per100.fat); set('nf-sf', m.per100.satfat);
+  set('nf-sug', m.per100.sugar); set('nf-asug', m.per100.addedsugar); set('nf-na', m.per100.sodium);
+  const msg = document.getElementById('offMsg');
+  msg.textContent = 'Found “' + m.name + '”. Values below are per 100g — sanity-check against the label, then Save food.'
+    + (m.servingG ? ' (Label serving is ' + m.servingG + 'g.)' : '');
+  document.getElementById('nf-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function lookupBarcode(code) {
+  const msg = document.getElementById('offMsg');
+  try {
+    const r = await fetch('https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code)
+      + '.json?fields=product_name,brands,nutriments,serving_quantity');
+    const j = await r.json();
+    if (j && j.product) prefillFromOFF(mapOFF(j.product));
+    else msg.textContent = 'No match for barcode ' + code + '. Snap the label and send it to Claude, or enter it manually below.';
+  } catch (e) {
+    msg.textContent = 'Couldn’t reach Open Food Facts. Check your connection and try again.';
+  }
+}
+async function offSearchRun() {
+  const q = document.getElementById('offSearch').value.trim();
+  const msg = document.getElementById('offMsg');
+  const box = document.getElementById('offResults');
+  clearNode(box);
+  if (!q) return;
+  msg.textContent = 'Searching…';
+  try {
+    const r = await fetch('https://world.openfoodfacts.org/cgi/search.pl?action=process&json=1&search_simple=1&page_size=8'
+      + '&fields=product_name,brands,nutriments,serving_quantity,code&search_terms=' + encodeURIComponent(q));
+    const j = await r.json();
+    const hits = (j.products || []).filter(p => p.product_name && p.nutriments);
+    if (!hits.length) { msg.textContent = 'Nothing found. Try fewer words, or send Claude the label.'; return; }
+    msg.textContent = 'Tap a result to prefill the form:';
+    hits.forEach(p => {
+      const m = mapOFF(p);
+      const item = el('div', 'off-item');
+      const left = el('span');
+      left.append(Object.assign(el('span', 'o-name'), { textContent: m.name }));
+      if (m.brand) left.append(document.createTextNode(' '), Object.assign(el('span', 'o-brand'), { textContent: m.brand }));
+      const per = el('span', 'o-per', fmtInt(m.per100.cal) + ' kcal · P' + fmt(m.per100.protein, 0) + ' · Fib' + fmt(m.per100.fiber, 0) + ' /100g');
+      item.append(left, per);
+      item.addEventListener('click', () => { clearNode(box); prefillFromOFF(m); });
+      box.append(item);
+    });
+  } catch (e) {
+    msg.textContent = 'Couldn’t reach Open Food Facts. Check your connection and try again.';
+  }
+}
+/* ---------- label photo OCR (beta) ---------- */
+let ocrLibPromise = null;
+function loadOcrLib() {
+  if (window.Tesseract) return Promise.resolve();
+  if (!ocrLibPromise) {
+    ocrLibPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js';
+      s.onload = resolve;
+      s.onerror = () => { ocrLibPromise = null; reject(new Error('lib')); };
+      document.head.append(s);
+    });
+  }
+  return ocrLibPromise;
+}
+function labelNum(text, patterns) {
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) return parseFloat(m[1]);
+  }
+  return undefined;
+}
+function gramPatterns(label) {
+  // three tiers: proper "Ng" · OCR's classic g→9 ("19" means 1g) · bare number
+  return [
+    new RegExp(label + '[^0-9]{0,12}(\\d+(?:\\.\\d+)?)\\s*g\\b'),
+    new RegExp(label + '[^0-9]{0,12}(\\d+(?:\\.\\d+)?)9\\b'),
+    new RegExp(label + '[^0-9]{0,12}(\\d+(?:\\.\\d+)?)\\b')
+  ];
+}
+function parseNutritionLabel(raw) {
+  // normalize common OCR quirks: letter O standing in for zero, stray pipes/commas
+  let t = raw.toLowerCase()
+    .replace(/[|_'‘’]/g, ' ')
+    .replace(/,(\d{3})/g, '$1')
+    .replace(/\bo\s*(g|mg)\b/g, '0$1')
+    .replace(/\s+/g, ' ');
+  const g = {};
+  g.servingG = labelNum(t, [
+    /serving size[^()]{0,50}\((\d+(?:\.\d+)?)\s*g\)/, /serving size[^()]{0,50}\((\d+(?:\.\d+)?)\s*m?l\)/,
+    /serving size[^()]{0,50}\((\d+(?:\.\d+)?)9\)/,
+    /\((\d+(?:\.\d+)?)\s*g\)/, /\((\d+(?:\.\d+)?)\s*m?l\)/, /\((\d+(?:\.\d+)?)9\)/
+  ]);
+  g.cal = labelNum(t, [/calories[^0-9]{0,20}(\d{2,4})/]);
+  g.fat = labelNum(t, gramPatterns('total fat'));
+  g.satfat = labelNum(t, gramPatterns('saturated fat'));
+  g.sodium = labelNum(t, [/sodium[^0-9]{0,12}(\d+(?:\.\d+)?)\s*m[gq]\b/, /sodium[^0-9]{0,12}(\d+(?:\.\d+)?)\b/]);
+  g.carbs = labelNum(t, [...gramPatterns('total carbohydrate'), ...gramPatterns('carbohydrate')]);
+  g.fiber = labelNum(t, gramPatterns('dietary fiber'));
+  g.sugar = labelNum(t, gramPatterns('total sugars'));
+  g.addedsugar = labelNum(t, [/includes[^0-9]{0,8}(\d+(?:\.\d+)?)\s*g?9?\s*added sugar/, ...gramPatterns('added sugars')]);
+  g.protein = labelNum(t, gramPatterns('protein'));
+  // sanity: a serving's grams of macros can't exceed the serving weight
+  if (g.servingG) {
+    ['fat','satfat','carbs','fiber','sugar','addedsugar','protein'].forEach(k => {
+      if (g[k] !== undefined && g[k] > g.servingG * 1.05) g[k] = undefined;
+    });
+  }
+  return g;
+}
+async function fileToCanvas(file) {
+  const bmp = await createImageBitmap(file);
+  const maxSide = 1800;
+  const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return c;
+}
+function rotate90(canvas) {
+  const c = document.createElement('canvas');
+  c.width = canvas.height; c.height = canvas.width;
+  const ctx = c.getContext('2d');
+  ctx.translate(c.width / 2, c.height / 2);
+  ctx.rotate(Math.PI / 2);
+  ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+  return c;
+}
+const LABEL_FIELDS = ['cal','protein','carbs','fiber','fat','satfat','sugar','addedsugar','sodium'];
+function fieldCount(p) { return LABEL_FIELDS.filter(k => p[k] !== undefined).length; }
+async function scanLabelFile(file) {
+  const msg = document.getElementById('offMsg');
+  try {
+    msg.textContent = 'Loading OCR engine…';
+    await loadOcrLib();
+  } catch (e) {
+    msg.textContent = 'Couldn’t load the OCR engine (no connection?). You can also send the photo to Claude in chat.';
+    return;
+  }
+  try {
+    let canvas = await fileToCanvas(file);
+    let best = {};
+    for (let turn = 0; turn < 4; turn++) {
+      if (turn > 0) {
+        canvas = rotate90(canvas);
+        msg.textContent = 'Trying a rotated view (' + turn + ' of 3)…';
+      }
+      const result = await Tesseract.recognize(canvas, 'eng', {
+        logger: info => {
+          if (info.status === 'recognizing text') {
+            msg.textContent = (turn ? 'Rotated view ' + turn + ': reading… ' : 'Reading label… ') + Math.round(info.progress * 100) + '%';
+          }
+        }
+      });
+      const p = parseNutritionLabel(result.data.text || '');
+      if (fieldCount(p) > fieldCount(best)) best = p;
+      if (best.cal !== undefined && fieldCount(best) >= 5) break; // good enough, stop early
+    }
+    const p = best;
+    if (p.cal === undefined && fieldCount(p) < 3) {
+      msg.textContent = 'Couldn’t read enough of that label. Try a straighter, closer, well-lit shot of just the Nutrition Facts panel — or send it to Claude in chat.';
+      return;
+    }
+    const sg = p.servingG || 100;
+    document.getElementById('nf-sg').value = sg;
+    const set = (id, v) => document.getElementById(id).value = (v === undefined ? '' : v);
+    set('nf-cal', p.cal); set('nf-p', p.protein); set('nf-c', p.carbs); set('nf-fib', p.fiber);
+    set('nf-f', p.fat); set('nf-sf', p.satfat); set('nf-sug', p.sugar); set('nf-asug', p.addedsugar); set('nf-na', p.sodium);
+    document.getElementById('nf-name').value = '';
+    msg.textContent = 'Label read (beta — double-check every number against the panel!). '
+      + (p.servingG ? `Serving read as ${sg}g.` : 'Couldn’t read the serving weight, so I assumed 100g — fix that first.')
+      + ' Add a name, then Save food.';
+    document.getElementById('nf-name').focus();
+    document.getElementById('nf-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (e) {
+    msg.textContent = 'OCR failed on that image. Try again with better light, or send the photo to Claude in chat.';
+  }
+}
+
+function initLookup() {
+  document.getElementById('labelBtn').addEventListener('click', () => document.getElementById('labelFile').click());
+  document.getElementById('labelFile').addEventListener('change', e => {
+    if (e.target.files[0]) scanLabelFile(e.target.files[0]);
+    e.target.value = '';
+  });
+  document.getElementById('scanBtn').addEventListener('click', openScanner);
+  document.getElementById('scanClose').addEventListener('click', closeScanner);
+  document.getElementById('offSearchBtn').addEventListener('click', offSearchRun);
+  document.getElementById('offSearch').addEventListener('keydown', e => { if (e.key === 'Enter') offSearchRun(); });
+}
+</script>
+</body>
+</html>
