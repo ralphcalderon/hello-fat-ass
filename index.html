@@ -348,7 +348,7 @@
 <body>
 <div class="app">
   <header class="top">
-    <h1>Hello, Fat Ass! <span style="font-weight:500;color:var(--text-muted);font-size:13px">let's fix that</span></h1>
+    <h1>Hello, Fat Ass!</h1>
     <div class="streaks" id="streakChips"></div>
     <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐</button>
   </header>
@@ -648,6 +648,15 @@ const DEFAULT_FOODS = [
   { id:'dark-chocolate-70', name:'Dark chocolate, 70-85%', per100:N(598,7.8,45.9,10.9,42.6,24.5,24,24,20), servings:[['2 squares (20g)',20]] },
   { id:'honey', name:'Honey', per100:N(304,0.3,82.4,0.2,0,0,82.1,82.1,4), servings:[['1 tbsp (21g)',21]] },
   { id:'cinnamon-ground', name:'Cinnamon, ground', per100:N(247,4,80.6,53.1,1.2,0.3,2.2,0,10), servings:[['1 tsp (2.6g)',2.6]] },
+  { id:'poblano-pepper', name:'Poblano pepper, raw', per100:N(20,0.9,4.6,1.7,0.2,0,2.5,0,3), servings:[['1 large (100g)',100]] },
+  { id:'garlic', name:'Garlic, raw', per100:N(149,6.4,33.1,2.1,0.5,0.1,1,0,17), servings:[['1 clove (3g)',3]] },
+  { id:'chipotle-adobo', name:'Chipotle peppers in adobo', per100:N(70,1.5,9,3,3,0.3,5,0,1100), servings:[['1 pepper + sauce (25g)',25]] },
+  { id:'cashews-roasted', name:'Cashews, roasted', per100:N(574,15.3,32.7,3.3,46.4,9.2,5,0,320), servings:[['small handful (28g)',28],['3/4 cup (103g)',103]] },
+  { id:'feta', name:'Feta, crumbled', per100:N(264,14.2,4.1,0,21.3,14.9,4.1,0,917), servings:[['1/4 cup (38g)',38],['1/2 cup (75g)',75]] },
+  { id:'mayonnaise', name:'Mayonnaise', per100:N(680,1,0.6,0,75,11.8,0.6,0,635), servings:[['1 tbsp (14g)',14]] },
+  { id:'panko', name:'Panko bread crumbs', per100:N(367,10,73.3,3.3,1.7,0.3,3.3,0,167), servings:[['1/4 cup (15g)',15],['3/4 cup (45g)',45]] },
+  { id:'vegetable-oil', name:'Vegetable oil', per100:N(884,0,0,0,100,8,0,0,0), servings:[['1 tbsp (13.5g)',13.5]] },
+  { id:'kosher-salt', name:'Kosher salt', per100:N(0,0,0,0,0,0,0,0,38758), servings:[['1 tsp (3g)',3]] },
 
   /* ---------- "it happens" — generic restaurant/bakery estimates ---------- */
   { id:'est-pizza-cheese', name:'Pizza, cheese slice', brand:'It happens · estimate', per100:N(266,11,33,2.3,10,4.5,3.6,2,598), servings:[['1 regular slice (110g)',110],['1 large/NY slice (140g)',140]] },
@@ -673,10 +682,26 @@ const DEFAULT_MEALS = [
     { f:'maple-syrup', g:30 },           // 1.5 tbsp
     { f:'almond-milk-elmhurst', g:120 }, // 1/2 cup
     { f:'cinnamon-ground', g:2.6 }       // 1 tsp
+  ] },
+  /* Kenji's black bean burgers (Aileen's) — whole batch makes 6 patties; this is 1 patty */
+  { id:'meal-black-bean-burger', name:'Black bean burger (1 patty)', items:[
+    { f:'black-beans-cooked', g:86.7 },  // 30oz cans drained ÷ 6
+    { f:'vegetable-oil', g:9 },          // 4 tbsp ÷ 6
+    { f:'onion', g:18.3 },               // 1 medium ÷ 6
+    { f:'poblano-pepper', g:16.7 },      // 1 large ÷ 6
+    { f:'garlic', g:1.5 },               // 3 cloves ÷ 6
+    { f:'chipotle-adobo', g:4.2 },       // 1 pepper + 1 tbsp sauce ÷ 6
+    { f:'cashews-roasted', g:17.2 },     // 3/4 cup ÷ 6
+    { f:'feta', g:12.5 },                // 1/2 cup ÷ 6
+    { f:'mayonnaise', g:4.7 },           // 2 tbsp ÷ 6
+    { f:'egg-whole', g:8.3 },            // 1 egg ÷ 6
+    { f:'panko', g:7.5 },                // 3/4 cup ÷ 6
+    { f:'kosher-salt', g:0.5 }           // ~1 tsp ÷ 6
   ] }
 ];
-const MIGRATE_FOOD_IDS = ['cinnamon-ground', 'brm-rolled-oats'];
-const DATA_VERSION = 2;
+const MIGRATE_FOOD_IDS = ['cinnamon-ground', 'brm-rolled-oats',
+  'poblano-pepper', 'garlic', 'chipotle-adobo', 'cashews-roasted', 'feta', 'mayonnaise', 'panko', 'vegetable-oil', 'kosher-salt'];
+const DATA_VERSION = 3;
 
 const DEFAULT_GOALS = {
   calories: 2150, protein: 180, fiber: 40, carbs: 200, fat: 70,
@@ -849,6 +874,13 @@ function adoptData(obj) {
       if (item) { item.f = 'brm-rolled-oats'; item.g = 48; }
     }
   }
+  // v3: newer built-in meals that older saved data won't have
+  ['meal-black-bean-burger'].forEach(id => {
+    if (!data.meals.find(m => m.id === id)) {
+      const src = DEFAULT_MEALS.find(m => m.id === id);
+      if (src) data.meals.push(JSON.parse(JSON.stringify(src)));
+    }
+  });
   data.version = DATA_VERSION;
 }
 async function connectFile() {
