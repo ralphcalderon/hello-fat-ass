@@ -188,7 +188,8 @@
   }
   .addrow input:focus, select:focus { border-color: var(--protein); }
   .add-grid { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .add-grid .search { flex: 1 1 240px; }
+  .add-grid .search-wrap { position: relative; flex: 1 1 240px; }
+  .add-grid .search { width: 100%; }
   .add-grid .grams { width: 110px; }
   .btn {
     font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
@@ -201,7 +202,7 @@
   .suggest {
     position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30;
     background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.12); max-height: 300px; overflow: auto; display: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12); max-height: min(300px, 38vh); overflow: auto; display: none;
   }
   .suggest.open { display: block; }
   .suggest .s-item { padding: 9px 14px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
@@ -374,14 +375,16 @@
     <div class="card addrow section-gap">
       <h2>Log a food <span class="sub">· weigh it, type it, done</span></h2>
       <div class="add-grid">
-        <input type="text" class="search" id="foodSearch" placeholder="Search foods… (e.g. oat bran, chia, FAGE)" autocomplete="off">
+        <div class="search-wrap">
+          <input type="text" class="search" id="foodSearch" placeholder="Search foods… (e.g. oat bran, chia, FAGE)" autocomplete="off">
+          <div class="suggest" id="suggestBox"></div>
+        </div>
         <input type="number" class="grams" id="gramsInput" placeholder="grams" min="0" step="any">
         <select id="mealSelect">
           <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
         </select>
         <button class="btn primary" id="addBtn" disabled>Add</button>
       </div>
-      <div class="suggest" id="suggestBox"></div>
       <div class="picked" id="pickedBox"></div>
       <div class="preview-line" id="previewLine"></div>
       <div class="recent" id="recentChips"></div>
