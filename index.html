@@ -1175,22 +1175,32 @@ function renderLog() {
         inp.style.cssText = 'font-family:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--border);border-radius:7px;background:var(--page);color:var(--text-primary);outline:none';
         const ok = el('button', 'chip', 'Save');
         ok.style.cssText = 'font-size:11px;padding:2px 9px;text-transform:none;letter-spacing:0';
+        const qfWrap = el('label');
+        qfWrap.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:none;letter-spacing:0;cursor:pointer';
+        const qf = document.createElement('input');
+        qf.type = 'checkbox';
+        qfWrap.append(qf, document.createTextNode('quick-fill'));
+        qfWrap.title = 'Quick-fill meals open with a weight field per ingredient every time, instead of fixed amounts';
         ok.addEventListener('click', () => {
           const name = inp.value.trim();
           if (!name) { inp.focus(); return; }
           const groupItems = (data.log[selectedDate] || []).filter(e => e.meal === meal && foodById(e.f));
           if (!data.meals) data.meals = [];
-          data.meals.push({
+          const newMeal = {
             id: 'meal-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36),
             name,
             items: groupItems.map(e => ({ f: e.f, g: e.g }))
-          });
+          };
+          if (qf.checked) newMeal.template = true;
+          data.meals.push(newMeal);
           markDirty();
-          toast('info', '🍳', `**${name}** saved — log it with one tap from search or the Meals chips.`);
+          toast('info', '🍳', qf.checked
+            ? `**${name}** saved as a quick-fill meal — picking it opens a weight field for each ingredient.`
+            : `**${name}** saved — log it with one tap from search or the Meals chips.`);
           renderAll();
         });
         inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') ok.click(); });
-        nameWrap2.append(inp, document.createTextNode(' '), ok);
+        nameWrap2.append(inp, document.createTextNode(' '), qfWrap, document.createTextNode(' '), ok);
         head.append(nameWrap2);
         inp.focus();
       });
@@ -1821,13 +1831,25 @@ function renderMealsList() {
     }).join(' · ');
     nameWrap.append(ing);
     const macros = el('span', 'e-macros', m.template ? 'quick-fill' : `${fmtInt(t.cal)} kcal · P ${fmt(t.protein,1)} · Fib ${fmt(t.fiber,1)}`);
+    const tgl = el('button', 'chip', m.template ? 'quick-fill ✓' : 'make quick-fill');
+    tgl.style.cssText = 'font-size:11px;padding:2px 9px';
+    tgl.title = m.template
+      ? 'Currently quick-fill: opens a weight field per ingredient. Tap to switch to fixed amounts.'
+      : 'Tap to make this a quick-fill meal: it will open a weight field per ingredient each time.';
+    tgl.addEventListener('click', () => {
+      m.template = !m.template;
+      if (!m.template) delete m.template;
+      markDirty();
+      renderMealsList();
+      renderRecent();
+    });
     const del = el('button', 'e-del', '✕');
     del.title = 'Delete meal';
     del.addEventListener('click', () => {
       data.meals = data.meals.filter(x => x.id !== m.id);
       markDirty(); renderMealsList(); renderRecent();
     });
-    row.append(nameWrap, macros, del);
+    row.append(nameWrap, macros, tgl, del);
     box.append(row);
   });
 }
