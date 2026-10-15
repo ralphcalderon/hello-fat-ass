@@ -237,6 +237,14 @@
   .entry:hover { background: var(--wash); }
   .entry .e-name { font-weight: 600; font-size: 14px; }
   .entry .e-grams { color: var(--text-muted); font-size: 13px; }
+  .tmpl-list { margin-top: 10px; display: grid; grid-template-columns: 1fr 110px; gap: 6px 10px; align-items: center; max-width: 420px; }
+  .tmpl-row { display: contents; }
+  .tmpl-name { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .tmpl-list input {
+    font-family: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--surface-1); color: var(--text-primary); outline: none; width: 100%;
+  }
+  .tmpl-list input:focus { border-color: var(--protein); }
   .entry .e-macros { margin-left: auto; font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
   .entry .e-del {
     border: 0; background: transparent; color: var(--text-muted); cursor: pointer;
@@ -380,6 +388,7 @@
           <div class="suggest" id="suggestBox"></div>
         </div>
         <input type="number" class="grams" id="gramsInput" placeholder="grams" min="0" step="any">
+        <select id="unitSelect" class="hidden"></select>
         <select id="mealSelect">
           <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
         </select>
@@ -660,6 +669,10 @@ const DEFAULT_FOODS = [
   { id:'panko', name:'Panko bread crumbs', per100:N(367,10,73.3,3.3,1.7,0.3,3.3,0,167), servings:[['1/4 cup (15g)',15],['3/4 cup (45g)',45]] },
   { id:'vegetable-oil', name:'Vegetable oil', per100:N(884,0,0,0,100,8,0,0,0), servings:[['1 tbsp (13.5g)',13.5]] },
   { id:'kosher-salt', name:'Kosher salt', per100:N(0,0,0,0,0,0,0,0,38758), servings:[['1 tsp (3g)',3]] },
+  { id:'larabar', name:'Larabar, fruit & nut bar (flavor avg)', per100:N(444,9,53,8,22,2.5,40,0,10), servings:[['1 bar (45g)',45]] },
+  { id:'fage-0', name:'Greek yogurt, 0% fat free', brand:'FAGE Total',
+    per100:N(52.9,10.6,2.9,0,0,0,2.9,0,33.5), servings:[['3/4 cup (170g)',170],['1 cup (227g)',227]] },
+  { id:'green-banana-powder', name:'Green banana powder', per100:N(367,3.3,86.7,8,0.3,0,3.3,0,10), servings:[['1 tbsp (8g)',8],['2 tbsp (16g)',16]] },
 
   /* ---------- "it happens" — generic restaurant/bakery estimates ---------- */
   { id:'est-pizza-cheese', name:'Pizza, cheese slice', brand:'It happens · estimate', per100:N(266,11,33,2.3,10,4.5,3.6,2,598), servings:[['1 regular slice (110g)',110],['1 large/NY slice (140g)',140]] },
@@ -700,11 +713,24 @@ const DEFAULT_MEALS = [
     { f:'egg-whole', g:6.3 },            // 1 egg ÷ 8
     { f:'panko', g:5.6 },                // 3/4 cup ÷ 8
     { f:'kosher-salt', g:0.4 }           // ~1 tsp ÷ 8
+  ] },
+  /* Ralph's daily "Sludge" — quick-fill template: amounts vary, fill as you weigh */
+  { id:'meal-sludge', name:'Sludge', template:true, items:[
+    { f:'fage-2', g:170 },               // usual yogurt
+    { f:'fage-5', g:150 },               // sometimes
+    { f:'fage-0', g:170 },               // sometimes
+    { f:'chia-seeds', g:10 },
+    { f:'flaxseed-ground', g:9 },
+    { f:'green-banana-powder', g:10 },
+    { f:'oat-bran', g:20 },
+    { f:'blueberries', g:75 },           // sometimes
+    { f:'honey', g:10 }                  // usually
   ] }
 ];
 const MIGRATE_FOOD_IDS = ['cinnamon-ground', 'brm-rolled-oats',
-  'poblano-pepper', 'garlic', 'chipotle-adobo', 'cashews-roasted', 'feta', 'mayonnaise', 'panko', 'vegetable-oil', 'kosher-salt'];
-const DATA_VERSION = 4;
+  'poblano-pepper', 'garlic', 'chipotle-adobo', 'cashews-roasted', 'feta', 'mayonnaise', 'panko', 'vegetable-oil', 'kosher-salt',
+  'larabar', 'fage-0', 'green-banana-powder'];
+const DATA_VERSION = 5;
 
 const DEFAULT_GOALS = {
   calories: 2150, protein: 180, fiber: 40, carbs: 200, fat: 70,
@@ -878,7 +904,7 @@ function adoptData(obj) {
     }
   }
   // v3: newer built-in meals that older saved data won't have
-  ['meal-black-bean-burger'].forEach(id => {
+  ['meal-black-bean-burger', 'meal-sludge'].forEach(id => {
     if (!data.meals.find(m => m.id === id)) {
       const src = DEFAULT_MEALS.find(m => m.id === id);
       if (src) data.meals.push(JSON.parse(JSON.stringify(src)));
@@ -1177,6 +1203,29 @@ function renderLog() {
         const nameWrap = el('div');
         const nm = el('span', 'e-name', f ? f.name : '(deleted food)');
         const gr = el('span', 'e-grams', ' · ' + fmt(entry.g, entry.g % 1 ? 1 : 0) + 'g');
+        gr.title = 'Tap to edit grams';
+        gr.style.cursor = 'pointer';
+        gr.addEventListener('click', () => {
+          const inp = document.createElement('input');
+          inp.type = 'number'; inp.min = '0'; inp.step = 'any';
+          inp.value = entry.g;
+          inp.style.cssText = 'width:76px;font-family:inherit;font-size:13px;padding:2px 6px;border:1px solid var(--protein);border-radius:6px;background:var(--page);color:var(--text-primary);outline:none;margin-left:4px';
+          gr.replaceWith(inp);
+          inp.focus(); inp.select();
+          let done = false;
+          const commit = () => {
+            if (done) return;
+            done = true;
+            const v = parseFloat(inp.value);
+            if (v > 0 && v !== entry.g) { entry.g = v; markDirty(); }
+            renderAll();
+          };
+          inp.addEventListener('keydown', ev => {
+            if (ev.key === 'Enter') commit();
+            if (ev.key === 'Escape') { done = true; renderAll(); }
+          });
+          inp.addEventListener('blur', commit);
+        });
         nameWrap.append(nm, gr);
         const macros = el('span', 'e-macros',
           `${fmtInt(n.cal)} kcal · P ${fmt(n.protein,1)} · Fib ${fmt(n.fiber,1)}`);
@@ -1286,8 +1335,8 @@ function renderSuggest(foods, meals) {
     if (s.meal) {
       const t = mealNutrients(s.meal, 1);
       left.append(Object.assign(el('span', 's-name'), { textContent: '🍳 ' + s.meal.name }));
-      left.append(document.createTextNode(' '), Object.assign(el('span', 's-brand'), { textContent: 'saved meal · ' + s.meal.items.length + ' ingredients' }));
-      item.append(left, el('span', 's-per', `${fmtInt(t.cal)} kcal · P${fmt(t.protein,0)} · Fib${fmt(t.fiber,0)}`));
+      left.append(document.createTextNode(' '), Object.assign(el('span', 's-brand'), { textContent: s.meal.template ? 'quick-fill meal · ' + s.meal.items.length + ' ingredients' : 'saved meal · ' + s.meal.items.length + ' ingredients' }));
+      item.append(left, el('span', 's-per', s.meal.template ? 'fill as you weigh' : `${fmtInt(t.cal)} kcal · P${fmt(t.protein,0)} · Fib${fmt(t.fiber,0)}`));
       item.addEventListener('click', () => pickMeal(s.meal));
     } else {
       const f = s.food;
@@ -1300,17 +1349,81 @@ function renderSuggest(foods, meals) {
   });
   box.classList.add('open');
 }
+function currentUnitGrams() {
+  const sel = document.getElementById('unitSelect');
+  if (sel.classList.contains('hidden') || sel.value === 'g' || !sel.value) return 1;
+  return parseFloat(sel.value) || 1;
+}
+function syncUnitUI() {
+  const grams = document.getElementById('gramsInput');
+  grams.placeholder = currentUnitGrams() === 1 ? 'grams' : 'how many';
+}
+function setupUnitSelect(f) {
+  const sel = document.getElementById('unitSelect');
+  clearNode(sel);
+  if (!f.servings || !f.servings.length) { sel.classList.add('hidden'); return; }
+  const og = document.createElement('option');
+  og.value = 'g'; og.textContent = 'grams';
+  sel.append(og);
+  f.servings.forEach(([label, grams]) => {
+    const o = document.createElement('option');
+    o.value = grams; o.textContent = '× ' + label;
+    sel.append(o);
+  });
+  sel.value = 'g';
+  sel.classList.remove('hidden');
+}
+function templateValues() {
+  const out = [];
+  document.querySelectorAll('#pickedBox input[data-food]').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (v > 0) out.push({ f: inp.dataset.food, g: v });
+  });
+  return out;
+}
 function pickMeal(meal) {
   pickedMeal = meal;
   picked = null;
   document.getElementById('suggestBox').classList.remove('open');
+  document.getElementById('unitSelect').classList.add('hidden');
   const search = document.getElementById('foodSearch');
   search.value = meal.name;
   const grams = document.getElementById('gramsInput');
-  grams.value = 1;
-  grams.placeholder = '× servings';
   const box = document.getElementById('pickedBox');
   clearNode(box);
+  if (meal.template) {
+    grams.value = '';
+    grams.style.display = 'none';
+    const line = el('div');
+    line.append(Object.assign(el('span', 'p-name'), { textContent: '🍳 ' + meal.name }),
+      document.createTextNode('  ·  fill in what you weighed — leave blank (or 0) to skip an ingredient'));
+    box.append(line);
+    const list = el('div', 'tmpl-list');
+    meal.items.forEach(it => {
+      const f = foodById(it.f);
+      if (!f) return;
+      const row = el('div', 'tmpl-row');
+      const lab = el('span', 'tmpl-name', f.name + (f.brand ? ' · ' + f.brand : ''));
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.min = '0'; inp.step = 'any';
+      inp.dataset.food = it.f;
+      const last = meal.last && meal.last[it.f];
+      inp.placeholder = last ? 'last ' + fmt(last, last % 1 ? 1 : 0) + 'g' : '~' + it.g + 'g';
+      inp.addEventListener('input', () => { updateAddState(); updatePreview(); });
+      row.append(lab, inp);
+      list.append(row);
+    });
+    box.append(list);
+    box.classList.add('show');
+    const first = box.querySelector('input[data-food]');
+    if (first) first.focus();
+    updateAddState();
+    updatePreview();
+    return;
+  }
+  grams.style.display = '';
+  grams.value = 1;
+  grams.placeholder = '× servings';
   const t = mealNutrients(meal, 1);
   const line = el('div');
   line.append(Object.assign(el('span', 'p-name'), { textContent: '🍳 ' + meal.name }),
@@ -1337,7 +1450,10 @@ function pickMeal(meal) {
 function pickFood(f) {
   picked = f;
   pickedMeal = null;
-  document.getElementById('gramsInput').placeholder = 'grams';
+  const gramsEl = document.getElementById('gramsInput');
+  gramsEl.style.display = '';
+  gramsEl.placeholder = 'grams';
+  setupUnitSelect(f);
   document.getElementById('suggestBox').classList.remove('open');
   const search = document.getElementById('foodSearch');
   search.value = f.name + (f.brand ? ' — ' + f.brand : '');
@@ -1352,7 +1468,13 @@ function pickFood(f) {
     f.servings.forEach(([label, grams]) => {
       const c = el('button', 'chip', label);
       c.addEventListener('click', () => {
-        document.getElementById('gramsInput').value = grams;
+        const sel = document.getElementById('unitSelect');
+        if (!sel.classList.contains('hidden')) {
+          sel.value = String(grams);
+          if (sel.value !== String(grams)) sel.value = 'g';
+        }
+        document.getElementById('gramsInput').value = sel.value === 'g' ? grams : 1;
+        syncUnitUI();
         updateAddState();
         updatePreview();
       });
@@ -1366,11 +1488,27 @@ function pickFood(f) {
   updatePreview();
 }
 function updateAddState() {
+  if (pickedMeal && pickedMeal.template) {
+    document.getElementById('addBtn').disabled = templateValues().length === 0;
+    return;
+  }
   const g = parseFloat(document.getElementById('gramsInput').value);
   document.getElementById('addBtn').disabled = !((picked || pickedMeal) && g > 0);
 }
 function updatePreview() {
   const line = document.getElementById('previewLine');
+  if (pickedMeal && pickedMeal.template) {
+    const vals = templateValues();
+    if (!vals.length) { line.classList.remove('show'); return; }
+    const t = N(0,0,0,0,0,0,0,0,0);
+    vals.forEach(v => {
+      const n = entryNutrients(v);
+      NUTRIENT_KEYS.forEach(k => t[k] += n[k]);
+    });
+    line.textContent = `${vals.length} ingredient${vals.length > 1 ? 's' : ''} = ${fmtInt(t.cal)} kcal · ${fmt(t.protein,1)}g protein · ${fmt(t.fiber,1)}g fiber · ${fmt(t.satfat,1)}g sat fat · ${fmtInt(t.sodium)}mg sodium`;
+    line.classList.add('show');
+    return;
+  }
   const g = parseFloat(document.getElementById('gramsInput').value);
   if (pickedMeal && g > 0) {
     const t = mealNutrients(pickedMeal, g);
@@ -1379,8 +1517,9 @@ function updatePreview() {
     return;
   }
   if (!(picked && g > 0)) { line.classList.remove('show'); return; }
-  const k = g / 100, p = picked.per100;
-  line.textContent = `${fmt(g, g % 1 ? 1 : 0)}g = ${fmtInt(p.cal*k)} kcal · ${fmt(p.protein*k,1)}g protein · ${fmt(p.fiber*k,1)}g fiber · ${fmt(p.satfat*k,1)}g sat fat · ${fmtInt(p.sodium*k)}mg sodium`;
+  const grams = g * currentUnitGrams();
+  const k = grams / 100, p = picked.per100;
+  line.textContent = `${fmt(grams, grams % 1 ? 1 : 0)}g = ${fmtInt(p.cal*k)} kcal · ${fmt(p.protein*k,1)}g protein · ${fmt(p.fiber*k,1)}g fiber · ${fmt(p.satfat*k,1)}g sat fat · ${fmtInt(p.sodium*k)}mg sodium`;
   line.classList.add('show');
 }
 function defaultMeal() {
@@ -1391,17 +1530,27 @@ function defaultMeal() {
   return 'Dinner';
 }
 function addEntry() {
+  const isTemplate = pickedMeal && pickedMeal.template;
   const g = parseFloat(document.getElementById('gramsInput').value);
-  if (!((picked || pickedMeal) && g > 0)) return;
+  if (isTemplate) {
+    if (!templateValues().length) return;
+  } else if (!((picked || pickedMeal) && g > 0)) return;
   const before = dayTotals(selectedDate);
   if (!data.log[selectedDate]) data.log[selectedDate] = [];
   const mealSlot = document.getElementById('mealSelect').value;
-  if (pickedMeal) {
+  if (isTemplate) {
+    const vals = templateValues();
+    if (!pickedMeal.last) pickedMeal.last = {};
+    vals.forEach(v => {
+      data.log[selectedDate].push({ f: v.f, g: v.g, meal: mealSlot, t: Date.now() });
+      pickedMeal.last[v.f] = v.g;
+    });
+  } else if (pickedMeal) {
     pickedMeal.items.forEach(item => {
       if (foodById(item.f)) data.log[selectedDate].push({ f: item.f, g: item.g * g, meal: mealSlot, t: Date.now() });
     });
   } else {
-    data.log[selectedDate].push({ f: picked.id, g, meal: mealSlot, t: Date.now() });
+    data.log[selectedDate].push({ f: picked.id, g: g * currentUnitGrams(), meal: mealSlot, t: Date.now() });
   }
   const after = dayTotals(selectedDate);
   markDirty();
@@ -1410,8 +1559,11 @@ function addEntry() {
   picked = null;
   pickedMeal = null;
   document.getElementById('foodSearch').value = '';
-  document.getElementById('gramsInput').value = '';
-  document.getElementById('gramsInput').placeholder = 'grams';
+  const gramsEl = document.getElementById('gramsInput');
+  gramsEl.value = '';
+  gramsEl.placeholder = 'grams';
+  gramsEl.style.display = '';
+  document.getElementById('unitSelect').classList.add('hidden');
   document.getElementById('pickedBox').classList.remove('show');
   document.getElementById('previewLine').classList.remove('show');
   updateAddState();
@@ -1668,7 +1820,7 @@ function renderMealsList() {
       return (f ? f.name : '?') + ' ' + fmt(it.g, it.g % 1 ? 1 : 0) + 'g';
     }).join(' · ');
     nameWrap.append(ing);
-    const macros = el('span', 'e-macros', `${fmtInt(t.cal)} kcal · P ${fmt(t.protein,1)} · Fib ${fmt(t.fiber,1)}`);
+    const macros = el('span', 'e-macros', m.template ? 'quick-fill' : `${fmtInt(t.cal)} kcal · P ${fmt(t.protein,1)} · Fib ${fmt(t.fiber,1)}`);
     const del = el('button', 'e-del', '✕');
     del.title = 'Delete meal';
     del.addEventListener('click', () => {
@@ -1814,6 +1966,14 @@ function init() {
   });
   const grams = document.getElementById('gramsInput');
   grams.addEventListener('input', () => { updateAddState(); updatePreview(); });
+  document.getElementById('unitSelect').addEventListener('change', () => {
+    const sel = document.getElementById('unitSelect');
+    const g = document.getElementById('gramsInput');
+    if (sel.value !== 'g' && (!g.value || parseFloat(g.value) > 10)) g.value = 1;
+    syncUnitUI();
+    updateAddState();
+    updatePreview();
+  });
   grams.addEventListener('keydown', e => { if (e.key === 'Enter' && !document.getElementById('addBtn').disabled) addEntry(); });
   document.getElementById('addBtn').addEventListener('click', addEntry);
   document.getElementById('mealSelect').value = defaultMeal();
