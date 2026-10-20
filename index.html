@@ -29,6 +29,8 @@
     --cal-track: rgba(235,104,52,0.16);
     --protein-track: rgba(42,120,214,0.16);
     --fiber-track: rgba(27,175,122,0.16);
+    --weight: #4a3aa7;        /* weight = violet */
+    --weight-track: rgba(74,58,167,0.16);
     --good: #0ca30c;
     --warning: #fab219;
     --serious: #ec835a;
@@ -53,6 +55,10 @@
       --cal-track: rgba(217,89,38,0.22);
       --protein-track: rgba(57,135,229,0.22);
       --fiber-track: rgba(25,158,112,0.22);
+    --weight: #9085e9;
+    --weight-track: rgba(144,133,233,0.22);
+      --weight: #9085e9;
+      --weight-track: rgba(144,133,233,0.22);
       --success-text: #0ca30c;
       --wash: rgba(255,255,255,0.06);
     }
@@ -245,6 +251,17 @@
     border-radius: 8px; background: var(--surface-1); color: var(--text-primary); outline: none; width: 100%;
   }
   .tmpl-list input:focus { border-color: var(--protein); }
+  .weight-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 11px 16px; }
+  .weight-row .w-label { font-size: 13.5px; font-weight: 600; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; }
+  .weight-row .w-label .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--weight); }
+  .weight-row input { width: 90px; font-family: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--page); color: var(--text-primary); outline: none; }
+  .weight-row input:focus { border-color: var(--weight); }
+  .weight-row .w-trend { font-size: 12.5px; color: var(--text-muted); }
+  .coach-grid { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 8px; }
+  .coach-grid .c-stat .c-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .coach-grid .c-stat .c-value { font-size: 24px; font-weight: 700; }
+  .coach-grid .c-stat .c-value .unit { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+  .coach-note { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
   .entry .e-macros { margin-left: auto; font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
   .entry .e-del {
     border: 0; background: transparent; color: var(--text-muted); cursor: pointer;
@@ -380,6 +397,8 @@
 
     <div class="card strip" id="statusStrip"></div>
 
+    <div class="card weight-row section-gap" id="weightCard"></div>
+
     <div class="card addrow section-gap">
       <h2>Log a food <span class="sub">· weigh it, type it, done</span></h2>
       <div class="add-grid">
@@ -421,7 +440,16 @@
   <!-- ================= TRENDS ================= -->
   <section id="tab-trends" class="hidden">
     <div class="tiles" id="trendTiles"></div>
+    <div class="card chart-card" style="margin-bottom:12px">
+      <h2>Coach <span class="sub">· your measured burn rate, from your own logs and scale</span></h2>
+      <div id="coachCard"></div>
+    </div>
     <div class="charts">
+      <div class="card chart-card">
+        <h2>Weight, last 30 days</h2>
+        <div class="chart-sub" id="weightChartSub"></div>
+        <div class="chart-box" id="weightChart"></div>
+      </div>
       <div class="card chart-card">
         <h2>Fiber, last 14 days</h2>
         <div class="chart-sub" id="fiberChartSub"></div>
@@ -508,6 +536,7 @@
         <div><label>Fiber goal (g)<input id="g-fiber" type="number" min="0"></label></div>
         <div><label>Carb guide (g)<input id="g-carbs" type="number" min="0"></label></div>
         <div><label>Fat guide (g)<input id="g-fat" type="number" min="0"></label></div>
+        <div><label>Target rate (lb/week, negative = lose)<input id="g-rate" type="number" step="0.25"></label></div>
       </div>
       <h2 style="margin-top:18px">Caps (warn at 80%, alert when over)</h2>
       <div class="settings-grid">
@@ -734,7 +763,7 @@ const DATA_VERSION = 5;
 
 const DEFAULT_GOALS = {
   calories: 2150, protein: 180, fiber: 40, carbs: 200, fat: 70,
-  sodium: 2300, satfat: 24, addedsugar: 30
+  sodium: 2300, satfat: 24, addedsugar: 30, weeklyRate: -1.5
 };
 
 const NUTRIENT_KEYS = ['cal','protein','carbs','fiber','fat','satfat','sugar','addedsugar','sodium'];
@@ -746,7 +775,9 @@ let data = {
   foods: JSON.parse(JSON.stringify(DEFAULT_FOODS)),
   meals: JSON.parse(JSON.stringify(DEFAULT_MEALS)),
   log: {},
-  celebrated: {}
+  celebrated: {},
+  removed: [],
+  weights: {}
 };
 let selectedDate = todayISO();
 let picked = null;            // currently selected food object
@@ -886,10 +917,13 @@ function adoptData(obj) {
     foods: Array.isArray(obj.foods) && obj.foods.length ? obj.foods : JSON.parse(JSON.stringify(DEFAULT_FOODS)),
     meals: Array.isArray(obj.meals) ? obj.meals : JSON.parse(JSON.stringify(DEFAULT_MEALS)),
     log: obj.log || {},
-    celebrated: obj.celebrated || {}
+    celebrated: obj.celebrated || {},
+    removed: Array.isArray(obj.removed) ? obj.removed : [],
+    weights: obj.weights || {}
   };
-  // migration: newer built-in foods that older saved data won't have
+  // migration: newer built-in foods that older saved data won't have (unless the user deleted them)
   MIGRATE_FOOD_IDS.forEach(id => {
+    if (data.removed.includes(id)) return;
     if (!data.foods.find(f => f.id === id)) {
       const src = DEFAULT_FOODS.find(f => f.id === id);
       if (src) data.foods.push(JSON.parse(JSON.stringify(src)));
@@ -1294,6 +1328,7 @@ function renderStrip() {
 function renderToday() {
   renderDate();
   renderStrip();
+  renderWeightCard();
   const t = dayTotals(selectedDate);
   const g = data.goals;
   renderRing('ringCal', 'Calories', '--cal', '--cal-track', t.cal, g.calories, 'kcal', true);
@@ -1807,6 +1842,8 @@ function renderTrends() {
     tile.append(v, el('div', 't-sub', sub));
     tiles.append(tile);
   });
+  renderWeightChart();
+  renderCoach();
 }
 
 /* ================= foods tab ================= */
@@ -1870,19 +1907,39 @@ function renderFoodsTable() {
       const td = document.createElement('td'); td.textContent = v; tr.append(td);
     });
     const actTd = document.createElement('td');
-    if (f.custom) {
-      const del = el('button', 'e-del', '✕');
-      del.title = 'Delete food';
-      del.addEventListener('click', () => {
-        data.foods = data.foods.filter(x => x.id !== f.id);
-        markDirty(); renderFoodsTable();
-      });
-      actTd.append(del);
-    }
+    actTd.style.whiteSpace = 'nowrap';
+    const edit = el('button', 'e-del', '✎');
+    edit.title = 'Edit this food';
+    edit.addEventListener('click', () => {
+      editingFoodId = f.id;
+      document.getElementById('nf-name').value = f.name;
+      document.getElementById('nf-brand').value = f.brand || '';
+      document.getElementById('nf-sg').value = 100;
+      const set = (id, v) => document.getElementById(id).value = v || 0;
+      set('nf-cal', p.cal); set('nf-p', p.protein); set('nf-c', p.carbs); set('nf-fib', p.fiber);
+      set('nf-f', p.fat); set('nf-sf', p.satfat); set('nf-sug', p.sugar); set('nf-asug', p.addedsugar); set('nf-na', p.sodium);
+      const msg = document.getElementById('foodFormMsg');
+      msg.textContent = `Editing “${f.name}” — values shown per 100g. Fix them and hit Save food to update it everywhere.`;
+      msg.classList.remove('dirty');
+      document.getElementById('saveFoodBtn').textContent = 'Update food';
+      document.getElementById('nf-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    actTd.append(edit);
+    const del = el('button', 'e-del', '✕');
+    del.title = 'Delete food';
+    del.addEventListener('click', () => {
+      data.foods = data.foods.filter(x => x.id !== f.id);
+      if (!data.removed) data.removed = [];
+      if (!data.removed.includes(f.id)) data.removed.push(f.id);
+      markDirty(); renderFoodsTable();
+      toast('info', '🗑️', `**${f.name}** removed from your foods. Past log entries that used it will show as “(deleted food)”.`);
+    });
+    actTd.append(del);
     tr.append(actTd);
     tbody.append(tr);
   });
 }
+let editingFoodId = null;
 function saveNewFood() {
   const name = document.getElementById('nf-name').value.trim();
   const brand = document.getElementById('nf-brand').value.trim();
@@ -1900,6 +1957,22 @@ function saveNewFood() {
     +(get('nf-fib') * k).toFixed(1), +(get('nf-f') * k).toFixed(1), +(get('nf-sf') * k).toFixed(1),
     +(get('nf-sug') * k).toFixed(1), +(get('nf-asug') * k).toFixed(1), +(get('nf-na') * k).toFixed(1)
   );
+  if (editingFoodId) {
+    const f = data.foods.find(x => x.id === editingFoodId);
+    editingFoodId = null;
+    document.getElementById('saveFoodBtn').textContent = 'Save food';
+    if (f) {
+      f.name = name;
+      f.brand = brand || undefined;
+      f.per100 = per100;
+      markDirty();
+      ['nf-name','nf-brand','nf-sg','nf-cal','nf-p','nf-c','nf-fib','nf-f','nf-sf','nf-sug','nf-asug','nf-na'].forEach(i => document.getElementById(i).value = '');
+      msg.textContent = `Updated “${name}” ✓ — today's totals and history recalculated.`;
+      msg.classList.remove('dirty');
+      renderAll();
+      return;
+    }
+  }
   const id = 'custom-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
   data.foods.push({ id, name, brand: brand || undefined, per100, servings: [[`1 serving (${sg}g)`, sg]], custom: true });
   markDirty();
@@ -1907,6 +1980,292 @@ function saveNewFood() {
   msg.textContent = `Saved “${name}” ✓`;
   msg.classList.remove('dirty');
   renderFoodsTable();
+}
+
+/* ================= weight & coach ================= */
+function weighInsSorted() {
+  return Object.keys(data.weights || {}).sort().map(iso => ({ iso, w: data.weights[iso] }));
+}
+function trendAt(iso) {
+  // 7-day rolling mean of recorded weigh-ins ending at iso
+  const vals = [];
+  for (let i = 0; i < 7; i++) {
+    const d = shiftISO(iso, -i);
+    if (data.weights && data.weights[d] !== undefined) vals.push(data.weights[d]);
+  }
+  if (!vals.length) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+function renderWeightCard() {
+  const card = document.getElementById('weightCard');
+  clearNode(card);
+  const label = el('span', 'w-label');
+  const dot = el('span', 'dot');
+  label.append(dot, document.createTextNode(selectedDate === todayISO() ? 'Weight today' : 'Weight ' + selectedDate.slice(5)));
+  const inp = document.createElement('input');
+  inp.type = 'number'; inp.min = '50'; inp.max = '500'; inp.step = 'any'; inp.placeholder = 'lb';
+  const existing = data.weights ? data.weights[selectedDate] : undefined;
+  if (existing !== undefined) inp.value = existing;
+  const save = el('button', 'btn small', existing !== undefined ? 'Update' : 'Save');
+  const doSave = () => {
+    const v = parseFloat(inp.value);
+    if (!(v >= 50 && v <= 500)) return;
+    if (!data.weights) data.weights = {};
+    data.weights[selectedDate] = v;
+    markDirty();
+    renderWeightCard();
+    if (!document.getElementById('tab-trends').classList.contains('hidden')) renderTrends();
+  };
+  save.addEventListener('click', doSave);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); });
+  card.append(label, inp, save);
+  const t = trendAt(selectedDate);
+  if (t !== null) {
+    const weekAgo = trendAt(shiftISO(selectedDate, -7));
+    let txt = 'trend ' + fmt(t, 1) + ' lb';
+    if (weekAgo !== null) {
+      const d = t - weekAgo;
+      txt += ' · ' + (d <= 0 ? '' : '+') + fmt(d, 1) + ' lb vs last week';
+    }
+    card.append(el('span', 'w-trend', txt));
+  } else {
+    card.append(el('span', 'w-trend', 'log daily for a smoothed trend and coaching'));
+  }
+}
+function qualifyingLogDays(windowDays) {
+  const out = [];
+  for (let i = 0; i < windowDays; i++) {
+    const iso = shiftISO(todayISO(), -i);
+    const entries = data.log[iso] || [];
+    if (entries.length >= 2) {
+      const t = dayTotals(iso);
+      if (t.cal >= 1000) out.push({ iso, cal: t.cal });
+    }
+  }
+  return out;
+}
+function computeCoach() {
+  const WINDOW = 28;
+  const logDays = qualifyingLogDays(WINDOW);
+  const cutoff = shiftISO(todayISO(), -(WINDOW - 1));
+  const weighs = weighInsSorted().filter(x => x.iso >= cutoff);
+  const need = { logDays: 10, weighs: 8, span: 14 };
+  const span = weighs.length >= 2
+    ? Math.round((isoToDate(weighs[weighs.length - 1].iso) - isoToDate(weighs[0].iso)) / 86400000)
+    : 0;
+  if (logDays.length < need.logDays || weighs.length < need.weighs || span < need.span) {
+    return { ready: false, have: { logDays: logDays.length, weighs: weighs.length, span }, need };
+  }
+  const firstIso = weighs[0].iso, lastIso = weighs[weighs.length - 1].iso;
+  const trendStart = trendAt(shiftISO(firstIso, 3)) ?? weighs[0].w;   // trend needs a few days of data
+  const trendEnd = trendAt(lastIso);
+  const days = Math.max(span - 3, 7);
+  const perDay = (trendEnd - trendStart) / days;                      // lb/day, negative = losing
+  const avgIntake = logDays.reduce((a, d) => a + d.cal, 0) / logDays.length;
+  const tdee = avgIntake - perDay * 3500;
+  const rate = (data.goals.weeklyRate !== undefined ? data.goals.weeklyRate : -1.5);
+  let suggested = Math.round((tdee + rate * 3500 / 7) / 10) * 10;
+  suggested = Math.max(suggested, 1500);
+  return {
+    ready: true,
+    tdee: Math.round(tdee / 10) * 10,
+    weeklyNow: perDay * 7,
+    avgIntake: Math.round(avgIntake),
+    suggested,
+    rate,
+    logDays: logDays.length, weighs: weighs.length, span
+  };
+}
+function renderCoach() {
+  const box = document.getElementById('coachCard');
+  if (!box) return;
+  clearNode(box);
+  const c = computeCoach();
+  if (!c.ready) {
+    const n = el('div', 'coach-note');
+    n.textContent = 'The coach measures your real daily burn by comparing what you log against what the scale does, then tunes your calorie target to your actual body instead of a formula. It needs more data first: '
+      + c.have.logDays + ' of ' + c.need.logDays + ' fully-logged days, '
+      + c.have.weighs + ' of ' + c.need.weighs + ' weigh-ins, spanning '
+      + c.have.span + ' of ' + c.need.span + ' days (last 4 weeks). Keep logging and weighing in — it unlocks itself.';
+    box.append(n);
+    return;
+  }
+  const grid = el('div', 'coach-grid');
+  const stat = (label, value, unit) => {
+    const s = el('div', 'c-stat');
+    s.append(el('div', 'c-label', label));
+    const v = el('div', 'c-value');
+    v.append(document.createTextNode(value), Object.assign(el('span', 'unit'), { textContent: ' ' + unit }));
+    s.append(v);
+    return s;
+  };
+  grid.append(
+    stat('Measured daily burn', fmtInt(c.tdee), 'kcal'),
+    stat('Current pace', (c.weeklyNow <= 0 ? '' : '+') + fmt(c.weeklyNow, 1), 'lb/wk'),
+    stat('Avg intake (logged days)', fmtInt(c.avgIntake), 'kcal'),
+    stat('Target for ' + fmt(c.rate, 1) + ' lb/wk', fmtInt(c.suggested), 'kcal')
+  );
+  box.append(grid);
+  const diff = c.suggested - data.goals.calories;
+  const note = el('div', 'coach-note');
+  if (Math.abs(diff) >= 50) {
+    note.textContent = 'Your current target is ' + fmtInt(data.goals.calories) + ' kcal. Based on ' + c.logDays
+      + ' logged days and ' + c.weighs + ' weigh-ins over ' + c.span + ' days, hitting '
+      + fmt(c.rate, 1) + ' lb/week wants ' + fmtInt(c.suggested) + ' kcal ('
+      + (diff > 0 ? '+' : '') + fmtInt(diff) + ').';
+    const apply = el('button', 'btn small', 'Apply ' + fmtInt(c.suggested) + ' kcal target');
+    apply.style.marginTop = '8px';
+    apply.addEventListener('click', () => {
+      data.goals.calories = c.suggested;
+      markDirty();
+      renderSettings();
+      renderAll();
+      toast('info', '🎯', '**Calorie target updated to ' + fmtInt(c.suggested) + ' kcal** — measured from your own data.');
+    });
+    box.append(note, apply);
+  } else {
+    note.textContent = 'Your current ' + fmtInt(data.goals.calories) + ' kcal target is within '
+      + fmtInt(Math.abs(diff)) + ' kcal of what your data suggests — no change needed. Numbers from '
+      + c.logDays + ' logged days and ' + c.weighs + ' weigh-ins over ' + c.span + ' days.';
+    box.append(note);
+  }
+  const caveat = el('div', 'coach-note');
+  caveat.textContent = 'Assumes your logged days represent your usual eating. Unlogged cheat days make the burn estimate read high, so log the ugly days too — the coach never judges, it just math.';
+  box.append(caveat);
+}
+function renderWeightChart() {
+  const box = document.getElementById('weightChart');
+  if (!box) return;
+  clearNode(box);
+  const days = 30;
+  const dates = [];
+  for (let i = days - 1; i >= 0; i--) dates.push(shiftISO(todayISO(), -i));
+  const pts = dates.map(iso => ({ iso, raw: data.weights ? data.weights[iso] : undefined, trend: trendAt(iso) }))
+    .map(p => ({ ...p, trend: (p.trend !== null && p.trend !== undefined) ? p.trend : null }));
+  const have = pts.filter(p => p.raw !== undefined);
+  const sub = document.getElementById('weightChartSub');
+  if (!have.length) {
+    if (sub) sub.textContent = 'No weigh-ins yet — add one on the Today tab.';
+    return;
+  }
+  if (sub) sub.textContent = have.length + ' weigh-in' + (have.length > 1 ? 's' : '') + ' in the last 30 days · line is the 7-day trend';
+  const W = Math.max(box.clientWidth || 900, 320), H = 190;
+  const padL = 48, padR = 12, padT = 14, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const allVals = [...have.map(p => p.raw), ...pts.filter(p => p.trend !== null).map(p => p.trend)];
+  let lo = Math.min(...allVals), hi = Math.max(...allVals);
+  const pad = Math.max((hi - lo) * 0.2, 1);
+  lo -= pad; hi += pad;
+  const x = i => padL + plotW * (i / (days - 1));
+  const y = v => padT + plotH - ((v - lo) / (hi - lo)) * plotH;
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.style.display = 'block';
+  for (let gi = 0; gi <= 2; gi++) {
+    const val = lo + (hi - lo) * gi / 2;
+    const gy = y(val);
+    const line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', padL); line.setAttribute('x2', W - padR);
+    line.setAttribute('y1', gy); line.setAttribute('y2', gy);
+    line.setAttribute('stroke', 'var(--grid)'); line.setAttribute('stroke-width', 1);
+    svg.append(line);
+    const tick = document.createElementNS(svgNS, 'text');
+    tick.setAttribute('x', padL - 7); tick.setAttribute('y', gy + 3.5);
+    tick.setAttribute('text-anchor', 'end'); tick.setAttribute('font-size', '10.5');
+    tick.setAttribute('font-variant-numeric', 'tabular-nums');
+    tick.setAttribute('fill', 'var(--text-muted)');
+    tick.textContent = fmt(val, 1);
+    svg.append(tick);
+  }
+  // x labels: every 7 days
+  pts.forEach((p, i) => {
+    if (i % 7 !== (days - 1) % 7) return;
+    const t = document.createElementNS(svgNS, 'text');
+    t.setAttribute('x', x(i)); t.setAttribute('y', H - 8);
+    t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-size', '10.5');
+    t.setAttribute('fill', 'var(--text-muted)');
+    const dd = isoToDate(p.iso);
+    t.textContent = (dd.getMonth() + 1) + '/' + dd.getDate();
+    svg.append(t);
+  });
+  // raw points (soft)
+  pts.forEach((p, i) => {
+    if (p.raw === undefined) return;
+    const dot = document.createElementNS(svgNS, 'circle');
+    dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(p.raw));
+    dot.setAttribute('r', 3.5);
+    dot.setAttribute('fill', 'var(--weight)');
+    dot.setAttribute('fill-opacity', '0.35');
+    svg.append(dot);
+  });
+  // trend line
+  const seg = pts.map((p, i) => p.trend !== null ? (i + ':' + p.trend) : null).filter(Boolean);
+  if (seg.length >= 2) {
+    let d = '';
+    pts.forEach((p, i) => {
+      if (p.trend === null) return;
+      d += (d ? ' L' : 'M') + x(i).toFixed(1) + ',' + y(p.trend).toFixed(1);
+    });
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'var(--weight)');
+    path.setAttribute('stroke-width', 2);
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('stroke-linecap', 'round');
+    svg.append(path);
+  }
+  // end marker + direct label on the trend
+  const lastTrendIdx = (() => { for (let i = pts.length - 1; i >= 0; i--) if (pts[i].trend !== null) return i; return -1; })();
+  if (lastTrendIdx >= 0) {
+    const ring = document.createElementNS(svgNS, 'circle');
+    ring.setAttribute('cx', x(lastTrendIdx)); ring.setAttribute('cy', y(pts[lastTrendIdx].trend));
+    ring.setAttribute('r', 4.5);
+    ring.setAttribute('fill', 'var(--weight)');
+    ring.setAttribute('stroke', 'var(--surface-1)');
+    ring.setAttribute('stroke-width', 2);
+    svg.append(ring);
+  }
+  // hover: per-day hit columns
+  pts.forEach((p, i) => {
+    if (p.raw === undefined && p.trend === null) return;
+    const hit = document.createElementNS(svgNS, 'rect');
+    hit.setAttribute('x', x(i) - plotW / days / 2); hit.setAttribute('y', padT);
+    hit.setAttribute('width', plotW / days); hit.setAttribute('height', plotH);
+    hit.setAttribute('fill', 'transparent');
+    hit.addEventListener('pointerenter', () => {
+      let tip = box.querySelector('.viz-tip');
+      if (!tip) { tip = el('div', 'viz-tip'); box.append(tip); }
+      clearNode(tip);
+      const dd = isoToDate(p.iso);
+      tip.append(el('div', 'tt-date', dd.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })));
+      const row = el('div', 'tt-row');
+      const key = el('span', 'tt-key'); key.style.background = 'var(--weight)';
+      row.append(key, Object.assign(el('span', 'tt-val'), { textContent: p.raw !== undefined ? fmt(p.raw, 1) + ' lb' : 'no weigh-in' }),
+        Object.assign(el('span', 'tt-name'), { textContent: 'scale' }));
+      tip.append(row);
+      if (p.trend !== null) {
+        const r2 = el('div');
+        r2.style.cssText = 'font-size:11.5px;margin-top:2px;color:var(--text-muted)';
+        r2.textContent = 'trend ' + fmt(p.trend, 1) + ' lb';
+        tip.append(r2);
+      }
+      tip.style.display = 'block';
+      const bw = box.clientWidth, tw = tip.offsetWidth;
+      let left = (x(i) / W) * bw - tw / 2;
+      left = Math.max(4, Math.min(left, bw - tw - 4));
+      tip.style.left = left + 'px';
+      tip.style.top = '0px';
+    });
+    hit.addEventListener('pointerleave', () => {
+      const tip = box.querySelector('.viz-tip');
+      if (tip) tip.style.display = 'none';
+    });
+    svg.append(hit);
+  });
+  box.append(svg);
 }
 
 /* ================= settings ================= */
@@ -1920,13 +2279,15 @@ function renderSettings() {
   document.getElementById('g-sodium').value = g.sodium;
   document.getElementById('g-satfat').value = g.satfat;
   document.getElementById('g-asug').value = g.addedsugar;
+  document.getElementById('g-rate').value = g.weeklyRate !== undefined ? g.weeklyRate : -1.5;
 }
 function saveGoals() {
   const get = id => parseFloat(document.getElementById(id).value) || 0;
   data.goals = {
     calories: get('g-cal'), protein: get('g-protein'), fiber: get('g-fiber'),
     carbs: get('g-carbs'), fat: get('g-fat'),
-    sodium: get('g-sodium'), satfat: get('g-satfat'), addedsugar: get('g-asug')
+    sodium: get('g-sodium'), satfat: get('g-satfat'), addedsugar: get('g-asug'),
+    weeklyRate: parseFloat(document.getElementById('g-rate').value) || 0
   };
   markDirty();
   document.getElementById('goalsMsg').textContent = 'Saved ✓';
@@ -2102,42 +2463,61 @@ function closeScanner() {
   }
 }
 
-function offNum(n, key) { const v = n ? n[key] : undefined; return typeof v === 'number' && isFinite(v) ? v : 0; }
+function offNum(n, key) { const v = n ? n[key] : undefined; const num = typeof v === 'string' ? parseFloat(v) : v; return typeof num === 'number' && isFinite(num) ? num : undefined; }
 function mapOFF(p) {
   const n = p.nutriments || {};
-  let cal = offNum(n, 'energy-kcal_100g');
-  if (!cal && offNum(n, 'energy_100g')) cal = offNum(n, 'energy_100g') / 4.184; // kJ fallback
-  let sodium = offNum(n, 'sodium_100g') * 1000;               // OFF stores grams
-  if (!sodium && offNum(n, 'salt_100g')) sodium = offNum(n, 'salt_100g') / 2.5 * 1000;
+  const servingG = parseFloat(p.serving_quantity) || 0;
+  // per-100g preferred; fall back to per-serving values scaled up when only those exist
+  const pick = (key100, keyServ) => {
+    const v100 = offNum(n, key100);
+    if (v100 !== undefined) return v100;
+    const vs = offNum(n, keyServ);
+    if (vs !== undefined && servingG > 0) return vs * 100 / servingG;
+    return 0;
+  };
+  let cal = pick('energy-kcal_100g', 'energy-kcal_serving');
+  if (!cal) {
+    const kj = pick('energy_100g', 'energy_serving');
+    if (kj) cal = kj / 4.184; // kJ fallback
+  }
+  let sodium = pick('sodium_100g', 'sodium_serving') * 1000;  // OFF stores grams
+  if (!sodium) {
+    const salt = pick('salt_100g', 'salt_serving');
+    if (salt) sodium = salt / 2.5 * 1000;
+  }
   return {
     name: (p.product_name || '').trim() || 'Unnamed product',
     brand: (p.brands || '').split(',')[0].trim(),
-    servingG: parseFloat(p.serving_quantity) || 0,
+    servingG,
     per100: {
       cal: Math.round(cal * 10) / 10,
-      protein: offNum(n, 'proteins_100g'),
-      carbs: offNum(n, 'carbohydrates_100g'),
-      fiber: offNum(n, 'fiber_100g'),
-      fat: offNum(n, 'fat_100g'),
-      satfat: offNum(n, 'saturated-fat_100g'),
-      sugar: offNum(n, 'sugars_100g'),
-      addedsugar: offNum(n, 'added-sugars_100g'),
+      protein: pick('proteins_100g', 'proteins_serving'),
+      carbs: pick('carbohydrates_100g', 'carbohydrates_serving'),
+      fiber: pick('fiber_100g', 'fiber_serving'),
+      fat: pick('fat_100g', 'fat_serving'),
+      satfat: pick('saturated-fat_100g', 'saturated-fat_serving'),
+      sugar: pick('sugars_100g', 'sugars_serving'),
+      addedsugar: pick('added-sugars_100g', 'added-sugars_serving'),
       sodium: Math.round(sodium)
     }
   };
 }
 function prefillFromOFF(m) {
-  // fill the manual form as a per-100g "serving" so Ralph reviews before saving
+  // Prefill on the LABEL'S terms: per serving when the serving weight is known,
+  // so the form matches the Nutrition Facts panel Ralph is holding.
   document.getElementById('nf-name').value = m.name;
   document.getElementById('nf-brand').value = m.brand || '';
-  document.getElementById('nf-sg').value = 100;
-  const set = (id, v) => document.getElementById(id).value = v ? +v.toFixed(1) : (v === 0 ? 0 : '');
+  const perServing = m.servingG > 0;
+  const k = perServing ? m.servingG / 100 : 1;
+  document.getElementById('nf-sg').value = perServing ? m.servingG : 100;
+  const set = (id, v) => { const x = v * k; document.getElementById(id).value = x ? +x.toFixed(1) : (x === 0 ? 0 : ''); };
   set('nf-cal', m.per100.cal); set('nf-p', m.per100.protein); set('nf-c', m.per100.carbs);
   set('nf-fib', m.per100.fiber); set('nf-f', m.per100.fat); set('nf-sf', m.per100.satfat);
   set('nf-sug', m.per100.sugar); set('nf-asug', m.per100.addedsugar); set('nf-na', m.per100.sodium);
   const msg = document.getElementById('offMsg');
-  msg.textContent = 'Found “' + m.name + '”. Values below are per 100g — sanity-check against the label, then Save food.'
-    + (m.servingG ? ' (Label serving is ' + m.servingG + 'g.)' : '');
+  msg.textContent = perServing
+    ? 'Found “' + m.name + '”. Values shown per ' + m.servingG + 'g serving, same basis as the label — they should match the panel. Fix anything off, then Save food.'
+    : 'Found “' + m.name + '”. No serving weight in the database, so values are per 100g — the label will show smaller per-serving numbers. Compare carefully (or set the serving weight and rescale), then Save food.';
   document.getElementById('nf-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 async function lookupBarcode(code) {
