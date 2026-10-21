@@ -1,5 +1,5 @@
 /* Hello, Fat Ass! — offline cache */
-const CACHE = 'hfa-v16';
+const CACHE = 'hfa-v17';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

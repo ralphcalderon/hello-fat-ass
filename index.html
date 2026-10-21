@@ -2089,7 +2089,10 @@ function renderFoodsTable() {
   const tbody = document.getElementById('foodsTbody');
   clearNode(tbody);
   const q = document.getElementById('foodsFilter').value.trim().toLowerCase();
-  const list = data.foods.filter(f => !q || (f.name + ' ' + (f.brand || '')).toLowerCase().includes(q));
+  const list = data.foods
+    .filter(f => !q || (f.name + ' ' + (f.brand || '')).toLowerCase().includes(q))
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
   document.getElementById('foodCount').textContent = `· ${data.foods.length} foods`;
   list.forEach(f => {
     const tr = document.createElement('tr');
