@@ -700,6 +700,31 @@ const DEFAULT_FOODS = [
   { id:'onion', name:'Onion, raw', per100:N(40,1.1,9.3,1.7,0.1,0,4.2,0,4), servings:[['medium (110g)',110]] },
   { id:'cucumber', name:'Cucumber, raw', per100:N(15,0.7,3.6,0.5,0.1,0,1.7,0,2), servings:[] },
   { id:'cauliflower', name:'Cauliflower, raw', per100:N(25,1.9,5,2,0.3,0.1,1.9,0,30), servings:[['1 cup (107g)',107]] },
+  { id:'chard', name:'Chard (Swiss/rainbow), raw', per100:N(19,1.8,3.7,1.6,0.2,0,1.1,0,213), servings:[['1 cup chopped (36g)',36],['1 bunch cooked-down (150g)',150]] },
+  { id:'zucchini', name:'Zucchini, raw', per100:N(17,1.2,3.1,1,0.3,0.1,2.5,0,8), servings:[['1 medium (196g)',196]] },
+  { id:'asparagus', name:'Asparagus, raw', per100:N(20,2.2,3.9,2.1,0.1,0,1.9,0,2), servings:[['6 spears (90g)',90]] },
+  { id:'green-beans', name:'Green beans, raw', per100:N(31,1.8,7,2.7,0.2,0,3.3,0,6), servings:[['1 cup (100g)',100]] },
+  { id:'mushrooms-white', name:'Mushrooms, white, raw', per100:N(22,3.1,3.3,1,0.3,0,2,0,5), servings:[['1 cup sliced (70g)',70]] },
+  { id:'celery', name:'Celery, raw', per100:N(14,0.7,3,1.6,0.2,0,1.3,0,80), servings:[['1 stalk (40g)',40]] },
+  { id:'corn-sweet', name:'Corn, sweet kernels', per100:N(86,3.3,19,2.7,1.4,0.3,6.3,0,15), servings:[['1 ear kernels (90g)',90]] },
+  { id:'peas-green', name:'Peas, green', per100:N(81,5.4,14.5,5.7,0.4,0.1,5.7,0,5), servings:[['1 cup (145g)',145]] },
+  { id:'beets', name:'Beets, raw', per100:N(43,1.6,9.6,2.8,0.2,0,6.8,0,78), servings:[['1 medium (82g)',82]] },
+  { id:'cabbage', name:'Cabbage, raw', per100:N(25,1.3,5.8,2.5,0.1,0,3.2,0,18), servings:[['1 cup shredded (89g)',89]] },
+  { id:'romaine', name:'Romaine lettuce', per100:N(17,1.2,3.3,2.1,0.3,0,1.2,0,8), servings:[['2 cups chopped (94g)',94]] },
+  { id:'arugula', name:'Arugula', per100:N(25,2.6,3.7,1.6,0.7,0.1,2.1,0,27), servings:[['2 cups (40g)',40]] },
+  { id:'butternut-squash', name:'Butternut squash, raw', per100:N(45,1,11.7,2,0.1,0,2.2,0,4), servings:[['1 cup cubed (140g)',140]] },
+  { id:'eggplant', name:'Eggplant, raw', per100:N(25,1,5.9,3,0.2,0,3.5,0,2), servings:[['1 cup cubed (82g)',82]] },
+  { id:'grapes', name:'Grapes', per100:N(69,0.7,18.1,0.9,0.2,0.1,15.5,0,2), servings:[['1 cup (151g)',151]] },
+  { id:'peach', name:'Peach', per100:N(39,0.9,9.5,1.5,0.3,0,8.4,0,0), servings:[['1 medium (150g)',150]] },
+  { id:'pear', name:'Pear', per100:N(57,0.4,15.2,3.1,0.1,0,9.8,0,1), servings:[['1 medium (178g)',178]] },
+  { id:'pineapple', name:'Pineapple', per100:N(50,0.5,13.1,1.4,0.1,0,9.9,0,1), servings:[['1 cup chunks (165g)',165]] },
+  { id:'mango', name:'Mango', per100:N(60,0.8,15,1.6,0.4,0.1,13.7,0,1), servings:[['1 cup pieces (165g)',165]] },
+  { id:'watermelon', name:'Watermelon', per100:N(30,0.6,7.6,0.4,0.2,0,6.2,0,1), servings:[['1 cup diced (152g)',152]] },
+  { id:'cantaloupe', name:'Cantaloupe', per100:N(34,0.8,8.2,0.9,0.2,0,7.9,0,16), servings:[['1 cup diced (156g)',156]] },
+  { id:'cherries', name:'Cherries, sweet', per100:N(63,1.1,16,2.1,0.2,0,12.8,0,0), servings:[['1 cup (138g)',138]] },
+  { id:'plum', name:'Plum', per100:N(46,0.7,11.4,1.4,0.3,0,9.9,0,0), servings:[['1 medium (66g)',66]] },
+  { id:'kiwi', name:'Kiwi', per100:N(61,1.1,14.7,3,0.5,0,9,0,3), servings:[['1 fruit (69g)',69]] },
+  { id:'pomegranate-arils', name:'Pomegranate arils', per100:N(83,1.7,18.7,4,1.2,0.1,13.7,0,3), servings:[['1/2 cup (87g)',87]] },
 
   { id:'almonds', name:'Almonds', per100:N(579,21.2,21.6,12.5,49.9,3.8,4.4,0,1), servings:[['small handful (28g)',28]] },
   { id:'walnuts', name:'Walnuts', per100:N(654,15.2,13.7,6.7,65.2,6.1,2.6,0,2), servings:[['small handful (28g)',28]] },
@@ -782,7 +807,10 @@ const DEFAULT_MEALS = [
 ];
 const MIGRATE_FOOD_IDS = ['cinnamon-ground', 'brm-rolled-oats',
   'poblano-pepper', 'garlic', 'chipotle-adobo', 'cashews-roasted', 'feta', 'mayonnaise', 'panko', 'vegetable-oil', 'kosher-salt',
-  'larabar', 'fage-0', 'green-banana-powder'];
+  'larabar', 'fage-0', 'green-banana-powder',
+  'chard', 'zucchini', 'asparagus', 'green-beans', 'mushrooms-white', 'celery', 'corn-sweet', 'peas-green', 'beets',
+  'cabbage', 'romaine', 'arugula', 'butternut-squash', 'eggplant', 'grapes', 'peach', 'pear', 'pineapple', 'mango',
+  'watermelon', 'cantaloupe', 'cherries', 'plum', 'kiwi', 'pomegranate-arils'];
 const DATA_VERSION = 6;
 
 const DEFAULT_GOALS = {
