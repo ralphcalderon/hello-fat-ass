@@ -262,6 +262,15 @@
   .coach-grid .c-stat .c-value { font-size: 24px; font-weight: 700; }
   .coach-grid .c-stat .c-value .unit { font-size: 12px; font-weight: 500; color: var(--text-muted); }
   .coach-note { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+  .meal-editor { background: var(--wash); border-radius: 12px; padding: 14px; margin: 4px 0 10px; }
+  .meal-editor .me-name { font-family: inherit; font-size: 14px; font-weight: 600; padding: 8px 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-1); color: var(--text-primary); outline: none; width: min(300px, 100%); }
+  .me-rows { display: grid; grid-template-columns: 1fr 96px 30px; gap: 6px 10px; align-items: center; margin-top: 10px; max-width: 460px; }
+  .me-rows .me-food { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .me-rows input { font-family: inherit; font-size: 14px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-1); color: var(--text-primary); outline: none; width: 100%; }
+  .me-add { position: relative; margin-top: 10px; max-width: 460px; }
+  .me-add input { font-family: inherit; font-size: 13.5px; padding: 8px 11px; border: 1px dashed var(--border); border-radius: 9px; background: var(--surface-1); color: var(--text-primary); outline: none; width: 100%; }
+  .me-add .suggest { max-height: 220px; }
+  .me-actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
   .entry .e-macros { margin-left: auto; font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
   .entry .e-del {
     border: 0; background: transparent; color: var(--text-muted); cursor: pointer;
@@ -1847,6 +1856,80 @@ function renderTrends() {
 }
 
 /* ================= foods tab ================= */
+function buildMealEditor(m) {
+  const ed = el('div', 'meal-editor');
+  ed.dataset.meal = m.id;
+  const nameInp = document.createElement('input');
+  nameInp.className = 'me-name';
+  nameInp.value = m.name;
+  ed.append(nameInp);
+  const rows = el('div', 'me-rows');
+  const working = m.items.map(it => ({ ...it }));
+  function drawRows() {
+    clearNode(rows);
+    working.forEach((it, i) => {
+      const f = foodById(it.f);
+      rows.append(Object.assign(el('span', 'me-food'), { textContent: f ? f.name : '(deleted food)' }));
+      const g = document.createElement('input');
+      g.type = 'number'; g.min = '0'; g.step = 'any'; g.value = it.g;
+      g.addEventListener('input', () => { it.g = parseFloat(g.value) || 0; });
+      rows.append(g);
+      const rm = el('button', 'e-del', '✕');
+      rm.title = 'Remove ingredient';
+      rm.addEventListener('click', () => { working.splice(i, 1); drawRows(); });
+      rows.append(rm);
+    });
+  }
+  drawRows();
+  ed.append(rows);
+  // add-ingredient search
+  const addWrap = el('div', 'me-add');
+  const addInp = document.createElement('input');
+  addInp.type = 'text'; addInp.placeholder = '＋ add ingredient — search your foods…';
+  const sugg = el('div', 'suggest');
+  addWrap.append(addInp, sugg);
+  addInp.addEventListener('input', () => {
+    clearNode(sugg);
+    const hits = searchFoods(addInp.value).filter(f => !working.find(w => w.f === f.id)).slice(0, 6);
+    if (!hits.length) { sugg.classList.remove('open'); return; }
+    hits.forEach(f => {
+      const item = el('div', 's-item');
+      const left = el('span');
+      left.append(Object.assign(el('span', 's-name'), { textContent: f.name }));
+      if (f.brand) left.append(document.createTextNode(' '), Object.assign(el('span', 's-brand'), { textContent: f.brand }));
+      item.append(left);
+      item.addEventListener('click', () => {
+        const g = (f.servings && f.servings.length) ? f.servings[0][1] : 100;
+        working.push({ f: f.id, g });
+        addInp.value = '';
+        sugg.classList.remove('open');
+        drawRows();
+      });
+      sugg.append(item);
+    });
+    sugg.classList.add('open');
+  });
+  ed.append(addWrap);
+  const actions = el('div', 'me-actions');
+  const save = el('button', 'btn small primary', 'Save changes');
+  save.addEventListener('click', () => {
+    const items = working.filter(it => it.g > 0 && foodById(it.f));
+    if (!items.length) { toast('warn', '⚠️', 'A meal needs at least one ingredient with a weight.'); return; }
+    m.name = nameInp.value.trim() || m.name;
+    m.items = items;
+    if (m.last) Object.keys(m.last).forEach(fid => { if (!items.find(it => it.f === fid)) delete m.last[fid]; });
+    markDirty();
+    toast('info', '🍳', '**' + m.name + '** updated.');
+    renderMealsList();
+    renderRecent();
+  });
+  const cancel = el('button', 'btn small', 'Cancel');
+  cancel.addEventListener('click', () => renderMealsList());
+  const hint = el('span', 'savestate', m.template ? 'Quick-fill meal: these amounts are the hints shown in its fields.' : '');
+  actions.append(save, cancel, hint);
+  ed.append(actions);
+  return ed;
+}
 function renderMealsList() {
   const box = document.getElementById('mealsList');
   clearNode(box);
@@ -1880,14 +1963,22 @@ function renderMealsList() {
       renderMealsList();
       renderRecent();
     });
+    const editBtn = el('button', 'e-del', '✎');
+    editBtn.title = 'Edit this meal';
     const del = el('button', 'e-del', '✕');
     del.title = 'Delete meal';
     del.addEventListener('click', () => {
       data.meals = data.meals.filter(x => x.id !== m.id);
       markDirty(); renderMealsList(); renderRecent();
     });
-    row.append(nameWrap, macros, tgl, del);
+    row.append(nameWrap, macros, tgl, editBtn, del);
     box.append(row);
+    editBtn.addEventListener('click', () => {
+      const open = box.querySelector('.meal-editor[data-meal="' + m.id + '"]');
+      document.querySelectorAll('.meal-editor').forEach(e => e.remove());
+      if (open) return; // second tap closes
+      box.insertBefore(buildMealEditor(m), row.nextSibling);
+    });
   });
 }
 function renderFoodsTable() {
