@@ -664,6 +664,23 @@ const DEFAULT_FOODS = [
   { id:'egg-white', name:'Egg whites', per100:N(52,10.9,0.7,0,0.2,0,0.7,0,166), servings:[['1 large white (33g)',33]] },
   { id:'tofu-firm', name:'Tofu, firm', per100:N(83,9.9,1.9,0.9,5.3,0.8,0.6,0,10), servings:[['1/2 block (170g)',170]] },
   { id:'deli-turkey', name:'Turkey breast, deli sliced', per100:N(104,17,3.5,0,1.7,0.4,2.1,1,1015), servings:[['2 slices (56g)',56]] },
+  { id:'skirt-steak', name:'Skirt steak, cooked', per100:N(255,26.7,0,0,16.5,6.3,0,0,66), servings:[['6 oz cooked (170g)',170]] },
+  { id:'ribeye', name:'Ribeye steak, cooked', per100:N(291,24,0,0,21.8,9,0,0,54), servings:[['6 oz cooked (170g)',170]] },
+  { id:'sirloin', name:'Sirloin steak, cooked', per100:N(206,29,0,0,9.6,3.7,0,0,56), servings:[['6 oz cooked (170g)',170]] },
+  { id:'ny-strip', name:'NY strip steak, cooked', per100:N(240,27.3,0,0,14.3,5.7,0,0,50), servings:[['6 oz cooked (170g)',170]] },
+  { id:'flank-steak', name:'Flank steak, cooked', per100:N(192,27.5,0,0,8.2,3.4,0,0,56), servings:[['6 oz cooked (170g)',170]] },
+  { id:'filet-mignon', name:'Filet mignon / tenderloin, cooked', per100:N(227,26,0,0,13.5,5.2,0,0,57), servings:[['6 oz cooked (170g)',170]] },
+  { id:'ground-beef-80', name:'Ground beef 80/20, cooked', per100:N(254,25.9,0,0,16,6.2,0,0,77), servings:[['4 oz cooked (113g)',113]] },
+  { id:'pork-chop', name:'Pork chop, cooked', per100:N(220,27,0,0,11.5,4,0,0,53), servings:[['1 chop (150g)',150]] },
+  { id:'pork-tenderloin', name:'Pork tenderloin, roasted', per100:N(143,26.2,0,0,3.5,1.2,0,0,57), servings:[['4 oz cooked (113g)',113]] },
+  { id:'pork-shoulder', name:'Pork shoulder / pulled pork, no sauce', per100:N(250,26.5,0,0,15.8,5.8,0,0,70), servings:[['1 cup pulled (140g)',140]] },
+  { id:'bacon', name:'Bacon, cooked', per100:N(541,37,1.4,0,41.8,13.7,0,0,1717), servings:[['1 slice (8g)',8],['3 slices (24g)',24]] },
+  { id:'italian-sausage', name:'Italian sausage, cooked', per100:N(330,18.5,2,0,27,9.5,0.8,0,800), servings:[['1 link (75g)',75]] },
+  { id:'chicken-drumstick', name:'Chicken drumstick, cooked, skinless', per100:N(155,24.2,0,0,5.7,1.5,0,0,95), servings:[['1 drumstick meat (45g)',45]] },
+  { id:'chicken-wings', name:'Chicken wings, roasted, with skin', per100:N(290,27,0,0,19.5,5.5,0,0,82), servings:[['3 wings meat (90g)',90]] },
+  { id:'rotisserie-chicken', name:'Rotisserie chicken, mixed meat', per100:N(215,25,0.5,0,12,3.4,0,0,350), servings:[['1 cup shredded (140g)',140]] },
+  { id:'turkey-breast-roasted', name:'Turkey breast, roasted', per100:N(147,30,0,0,2,0.6,0,0,55), servings:[['4 oz (113g)',113]] },
+  { id:'lamb-chop', name:'Lamb chop, cooked', per100:N(258,25.5,0,0,16.6,7.1,0,0,65), servings:[['2 small chops (120g)',120]] },
 
   { id:'oats-rolled', name:'Rolled oats, dry', per100:N(379,13.2,67.7,10.1,6.5,1.2,1,0,6), servings:[['1/2 cup dry (40g)',40]] },
   { id:'rice-white-cooked', name:'White rice, cooked', per100:N(130,2.7,28.2,0.4,0.3,0.1,0,0,1), servings:[['1 cup (158g)',158]] },
@@ -810,7 +827,10 @@ const MIGRATE_FOOD_IDS = ['cinnamon-ground', 'brm-rolled-oats',
   'larabar', 'fage-0', 'green-banana-powder',
   'chard', 'zucchini', 'asparagus', 'green-beans', 'mushrooms-white', 'celery', 'corn-sweet', 'peas-green', 'beets',
   'cabbage', 'romaine', 'arugula', 'butternut-squash', 'eggplant', 'grapes', 'peach', 'pear', 'pineapple', 'mango',
-  'watermelon', 'cantaloupe', 'cherries', 'plum', 'kiwi', 'pomegranate-arils'];
+  'watermelon', 'cantaloupe', 'cherries', 'plum', 'kiwi', 'pomegranate-arils',
+  'skirt-steak', 'ribeye', 'sirloin', 'ny-strip', 'flank-steak', 'filet-mignon', 'ground-beef-80',
+  'pork-chop', 'pork-tenderloin', 'pork-shoulder', 'bacon', 'italian-sausage',
+  'chicken-drumstick', 'chicken-wings', 'rotisserie-chicken', 'turkey-breast-roasted', 'lamb-chop'];
 const DATA_VERSION = 6;
 
 const DEFAULT_GOALS = {
